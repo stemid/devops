@@ -15,6 +15,8 @@ WORKING_DIR = '.'
 
 # Logfile
 LOG_FILE = 'spamutbildning.log'
+LOG_MAX_BYTES = 20971520
+LOG_MAX_COPIES = 5
 
 # These will be automagically created if they do not exist
 TMP_DIR = '{pwd}s/tmp'.format(pwd=WORKING_DIR)
@@ -25,6 +27,7 @@ import os
 import tempfile
 import email
 from email.parser import Parser
+from email.MIMEText import MIMEText
 import smtplib
 import logging
 from logging import handlers
@@ -35,13 +38,18 @@ PROC_EGID = os.getegid()
 
 # setup logging
 logFormat = '%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s'
-
 logging.basicConfig(
     format=logFormat,
     filename=LOG_FILE,
     level=logging.DEBUG,
 )
 l = logging.getLogger(__name__)
+h = handlers.RotatingFileHandler(
+    LOG_FILE, 
+    maxBytes=LOG_MAX_BYTES, 
+    backupCount=LOG_MAX_COPIES
+)
+l.addHandler(h)
 
 def main():
     if initDir(TMP_DIR, PROC_EUID, PROC_EGID, 0750) is False:
@@ -75,35 +83,53 @@ def main():
 
     # If it's not multipart at this point, simply give up
     if email.is_multipart() is False:
-        l.info('Non-multipart email, discarding mail from: %s' % email.get('From'))
+        l.info('Non-multipart input, discarding mail from: %s' % email.get('From'))
         return True
 
     # Create temporary file for email
     try:
         emailFile = tempfile.mkstemp(dir=TMP_DIR, prefix='tmpmail')
+        tmpSuffix = os.path.basename(emailFile[1])[7:]
     except(OSError), e:
         l.critical('Could not create temporary email file')
         return False
 
-    try:
-        fp = open(emailFile, 'w')
-    except(OSError, IOError), e:
-        l.critical('Could not open email file for writing: %s' % emailFile)
-        return False
-
-    fp.write(str(email))
-    fp.close()
+    emailFile[0].write(str(email))
+    emailFile[0].close()
 
     # Now send out notifications to admins
-    adminMessage = ''
-    # TODO: Create MIME message and add payload to it
+    adminMessage = """Automated message from rsmail020
+
+Received spam candidate with ID {tmpmailID}
+
+Please view attachment for analysis. 
+
+Take action by replying to this message with the following subject:
+
+!CONFIRM {tmpmailID}
+!DELETE {tmpmailID}
+
+To confirm, or delete, the mail. 
+
+/ Spamutbildning
+""".format(tmpmailID=tmpSuffix)
+
+    # Create the MIME message
+    newMail = MIMEText(unicode(adminMessage, 'UTF-8'), 'plain', 'UTF-8')
+    m['From'] = 'spamutbildning@rsmail020.skane.se'
+    m['Reply-to'] = 'spamutbildning@rsmail020.skane.se'
+    m['Subject'] = 'New spam candidate: %s' % tmpSuffix
+    m['To'] = ','.join(ADMINS)
+
     try:
         smtp = smtplib.SMTP('localhost')
-        smtp.sendmail('mail@rsmail020.skane.se', ADMINS, adminMessage)
-        smtp.quit()
+        smtp.sendmail('mail@rsmail020.skane.se', ADMINS, m.as_string())
     except(smtplib.SMTPException), e:
         l.critical('SMTP Exception: %s' % str(e))
         return False
+    finally:
+        l.info('Email sent to admins: %s' % ','.join(ADMINS))
+        smtp.quit()
 
     return True
 
