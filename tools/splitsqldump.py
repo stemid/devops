@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-LOG_FILE = 'splitsqldump.py'
+LOG_FILE = 'splitsqldump.log'
 LOG_MAX_BYTES = 200000
 LOG_MAX_COPIES = 2
 
@@ -11,19 +11,16 @@ from logging import handlers
 import argparse
 
 # Setup logging
-logFormat = '%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s'
-logging.basicConfig(
-    format=logFormat,
-    filename=LOG_FILE,
-    level=logging.INFO,
-)
+formatter = logging.Formatter('%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s')
 l = logging.getLogger(__name__)
 h = handlers.RotatingFileHandler(
     LOG_FILE, 
     maxBytes=LOG_MAX_BYTES, 
     backupCount=LOG_MAX_COPIES
 )
+h.setFormatter(formatter)
 l.addHandler(h)
+l.setLevel(logging.INFO)
 
 def main():
     # Initiate argument parser and add arguments
@@ -39,20 +36,29 @@ def main():
         help='Type of dump to parse, currently only mysql supported'
     )
     parser.add_argument(
-        '-d', '--db', '--database',
+        '-d', '--db', '--dbname', '--database',
         nargs=1,
+        default='',
         metavar='mySpecialDB',
         help='Name of database to extract, will be created as name.sql in cwd'
     )
     parser.add_argument(
+        '-o', '--out', '--output',
+        metavar='newdump.sql',
+        help='Name of output file'
+    )
+    parser.add_argument(
         'filename',
-        nargs=1,
+        nargs='?',
+        default='',
         metavar='all-databases.sql',
         help='Filename containing database dumps'
     )
 
     # Parse the arguments
     args = parser.parse_args()
+
+    if args.output and args.
 
     try:
         sqldump = open(args.filename, 'r')
@@ -62,11 +68,23 @@ def main():
         l.info('Trying to read from stdin')
         sqldump = sys.stdin
 
+    newDump = None
+    # Loop through lines of db dump
     for line in sqldump:
         if line.startswith('-- Current database'):
+            dbName = ''
+
+            # Close any previously split db.
+            if newDump is not None:
+                if newDump.closed is False:
+                    newDump.close()
+
             reMatch = re.search('Current database `([^`]+)`', line)
             dbName = reMatch.group(1)
             l.info('Found DB name: %s' % dbName)
+            if dbName == '':
+                l.info('Do not support blank db names')
+                continue
 
 if __name__ == '__main__':
     if main():
