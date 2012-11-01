@@ -43,12 +43,12 @@ logging.basicConfig(
     filename=LOG_FILE,
     level=logging.DEBUG,
 )
-l = logging.getLogger(__name__)
 h = handlers.RotatingFileHandler(
     LOG_FILE, 
     maxBytes=LOG_MAX_BYTES, 
     backupCount=LOG_MAX_COPIES
 )
+l = logging.getLogger(__name__)
 l.addHandler(h)
 
 def main():
@@ -86,16 +86,19 @@ def main():
         l.info('Non-multipart input, discarding mail from: %s' % email.get('From'))
         return True
 
+    # Extract first payload from email
     # Create temporary file for email
     try:
         emailFile = tempfile.mkstemp(dir=TMP_DIR, prefix='tmpmail')
         tmpSuffix = os.path.basename(emailFile[1])[7:]
+        emailFD = os.fdopen(emailFile[0], 'w')
+        l.info('Created temporary suffix ID for email: %s' % tmpSuffix)
     except(OSError), e:
         l.critical('Could not create temporary email file')
         return False
 
-    emailFile[0].write(str(email))
-    emailFile[0].close()
+    emailFD.write(str(email))
+    emailFD.close()
 
     # Now send out notifications to admins
     adminMessage = """Automated message from rsmail020

@@ -31,21 +31,27 @@ def main():
     parser.add_argument(
         '-t', '--type', '--dbtype',
         nargs=1,
+        choices=[
+            'mysql',
+        ],
         default='mysql', # TODO: PG
+        dest='dbtype',
         metavar='mysql',
         help='Type of dump to parse, currently only mysql supported'
     )
     parser.add_argument(
         '-d', '--db', '--dbname', '--database',
-        nargs=1,
+        nargs='?', #TODO: Support multiple
         default='',
+        dest='dbname',
         metavar='mySpecialDB',
         help='Name of database to extract, will be created as name.sql in cwd'
     )
     parser.add_argument(
-        '-o', '--out', '--output',
-        metavar='newdump.sql',
-        help='Name of output file'
+        '-s', '--stdout',
+        action='store_true',
+        dest='stdout',
+        help='Output to stdout'
     )
     parser.add_argument(
         'filename',
@@ -58,13 +64,10 @@ def main():
     # Parse the arguments
     args = parser.parse_args()
 
-    if args.output and args.
-
     try:
         sqldump = open(args.filename, 'r')
     except(OSError, IOError), e:
-        l.critical('Could not open input file: %s' % sys.argv[1])
-    finally:
+        l.critical('Could not open input file: %s' % args.filename)
         l.info('Trying to read from stdin')
         sqldump = sys.stdin
 
@@ -75,16 +78,35 @@ def main():
             dbName = ''
 
             # Close any previously split db.
-            if newDump is not None:
+            if newDump is not None and args.stdout is False:
                 if newDump.closed is False:
                     newDump.close()
 
-            reMatch = re.search('Current database `([^`]+)`', line)
+            reMatch = re.search('^-- Current database: `([^`]+)`', line)
             dbName = reMatch.group(1)
             l.info('Found DB name: %s' % dbName)
             if dbName == '':
                 l.info('Do not support blank db names')
                 continue
+
+            if args.dbname is not None:
+                if args.dbname != dbName:
+                    if newDump.closed is False: newDump.close()
+                    newDump = None
+                    continue
+
+            if args.stdout is False:
+                try:
+                    newDump = open('%s.sql' % dbName, 'w')
+                except(OSError, IOError), e:
+                    l.critical('Could not open output file: %s.sql' % dbName)
+                    return False
+
+        # Write line to file
+        if newDump is not None:
+            if newDump.closed is False: newDump.write(line)
+
+    return True
 
 if __name__ == '__main__':
     if main():
