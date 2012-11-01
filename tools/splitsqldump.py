@@ -99,9 +99,10 @@ def main():
                 l.info('Do not support blank db names')
                 continue
 
-            if args.dbname is not None and newDump is not None:
+            if args.dbname is not None:
                 if args.dbname != dbName:
-                    if newDump.closed is False: newDump.close()
+                    if newDump is not None:
+                        if newDump.closed is False: newDump.close()
                     newDump = None
                     continue
 
