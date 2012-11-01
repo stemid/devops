@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+# Wrote this because GNU split can't 
+# split by regex and I just wanted 
+# a program like this available. 
+# Unfortunately argparse requires 
+# python 2.7 to work without installing 
+# a 3rd party module. 
+# Stupid Debian stable. 
+#
+# by Stefan Midjich
+# CC0 - 2012
 
 LOG_FILE = 'splitsqldump.log'
 LOG_MAX_BYTES = 200000
@@ -74,7 +84,7 @@ def main():
     newDump = None
     # Loop through lines of db dump
     for line in sqldump:
-        if line.startswith('-- Current database'):
+        if line.startswith('-- Current database:'):
             dbName = ''
 
             # Close any previously split db.
@@ -82,7 +92,7 @@ def main():
                 if newDump.closed is False:
                     newDump.close()
 
-            reMatch = re.search('^-- Current database: `([^`]+)`', line)
+            reMatch = re.search('-- Current database: `([^`]+)`', line)
             dbName = reMatch.group(1)
             l.info('Found DB name: %s' % dbName)
             if dbName == '':
