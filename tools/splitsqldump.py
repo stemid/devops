@@ -84,7 +84,7 @@ def main():
     newDump = None
     # Loop through lines of db dump
     for line in sqldump:
-        if line.startswith('-- Current database:'):
+        if line.startswith('-- Current Database:'):
             dbName = ''
 
             # Close any previously split db.
@@ -92,7 +92,7 @@ def main():
                 if newDump.closed is False:
                     newDump.close()
 
-            reMatch = re.search('-- Current database: `([^`]+)`', line)
+            reMatch = re.search('-- Current Database: `([^`]+)`', line)
             dbName = reMatch.group(1)
             l.info('Found DB name: %s' % dbName)
             if dbName == '':
