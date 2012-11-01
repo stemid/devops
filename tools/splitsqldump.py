@@ -11,7 +11,7 @@
 # CC0 - 2012
 
 LOG_FILE = 'splitsqldump.log'
-LOG_MAX_BYTES = 200000
+LOG_MAX_BYTES = 20971520
 LOG_MAX_COPIES = 2
 
 import sys

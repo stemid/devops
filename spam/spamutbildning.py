@@ -5,9 +5,7 @@
 
 # People allowed to send commands
 ADMINS = [
-    'stefan.midjich@cygate.se',
-    'henrik.svensson@cygate.se',
-    'driftopsyd@cygate.se',
+    'admin@domain.tld',
 ]
 
 # Working dir must be writable by mail user and/or group
@@ -36,20 +34,17 @@ from logging import handlers
 PROC_EUID = os.geteuid()
 PROC_EGID = os.getegid()
 
-# setup logging
-logFormat = '%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s'
-logging.basicConfig(
-    format=logFormat,
-    filename=LOG_FILE,
-    level=logging.DEBUG,
-)
+# Setup logging
+formatter = logging.Formatter('%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s')
+l = logging.getLogger(__name__)
 h = handlers.RotatingFileHandler(
     LOG_FILE, 
     maxBytes=LOG_MAX_BYTES, 
     backupCount=LOG_MAX_COPIES
 )
-l = logging.getLogger(__name__)
+h.setFormatter(formatter)
 l.addHandler(h)
+l.setLevel(logging.INFO)
 
 def main():
     if initDir(TMP_DIR, PROC_EUID, PROC_EGID, 0750) is False:
