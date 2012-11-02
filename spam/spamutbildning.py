@@ -20,6 +20,10 @@ LOG_MAX_COPIES = 5
 TMP_DIR = '{pwd}s/tmp'.format(pwd=WORKING_DIR)
 CONFIRMED_DIR = '{pwd}s/confirmed'.format(pwd=WORKING_DIR)
 
+# Goes into filenames of queued mail 
+TMP_PREFIX = 'tmpmail'
+SPAM_PREFIX = 'spam'
+
 import sys
 import os
 import tempfile
@@ -47,6 +51,7 @@ l.addHandler(h)
 l.setLevel(logging.INFO)
 
 def main():
+    # Initialize our working environment
     if initDir(TMP_DIR, PROC_EUID, PROC_EGID, 0750) is False:
         l.critical('Could not initialize working directory: %s' % TMP_DIR)
         return False
@@ -84,16 +89,16 @@ def main():
     # Extract first payload from email
     # Create temporary file for email
     try:
-        emailFile = tempfile.mkstemp(dir=TMP_DIR, prefix='tmpmail')
-        tmpSuffix = os.path.basename(emailFile[1])[7:]
-        emailFD = os.fdopen(emailFile[0], 'w')
+        emailFile = tempfile.mkstemp(dir=TMP_DIR, prefix=TMP_PREFIX)
+        tmpSuffix = os.path.basename(emailFile[1])[len(TMP_PREFIX):]
+        emailFile = os.fdopen(emailFile[0], 'w')
         l.info('Created temporary suffix ID for email: %s' % tmpSuffix)
     except(OSError), e:
         l.critical('Could not create temporary email file')
         return False
 
-    emailFD.write(str(email))
-    emailFD.close()
+    emailFile.write(str(email))
+    emailFile.close()
 
     # Now send out notifications to admins
     adminMessage = """Automated message from rsmail020
