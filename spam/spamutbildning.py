@@ -52,23 +52,34 @@ def main():
     l.info('Received email: from[%s], subject[%s]' % (email.get('from'),
                                                       email.get('subject')))
 
-    # First find out if it's a command from an admin
+    # First find out if it's a command from an admin, and act on that.
     if (email.get('Subject').startswith('!DELETE ') or
         email.get('Subject').startswith('!CONFIRM ')):
         l.info('Found admin command in subject: %s' % email.get('Subject'))
-        # If it has any of these two commands in its subject
-        # we process the email with a different function and 
+        # If it has any of these commands in its subject we 
+        # process the email with a different function and 
         # only continue if it returns False.
         if adminMail():
             return True
         l.info('Admin command did not pan out, proceeding')
 
-    # If it's not multipart at this point, simply give up
+    # If it's not multipart at this point, simply give up.
+    # Admins are allowed to send non-multipart commands. 
     if email.is_multipart() is False:
         l.info('Non-multipart, discarding mail from: %s' % email.get('From'))
         return True
 
-    # Extract first payload from email
+    # Snatch list of payloads from incoming mail
+    discardedPayloads = []
+    payloads = email.get_payload()
+    for p in payloads:
+        p.content_type = p.get_content_type()
+        # Remove any non-matching payloads
+        if p.content_type not in VALID_FORMATS:
+            discardedPayloads.append(
+                payloads.pop(payloads.index(p))
+            )
+
     # Create temporary file for email
     try:
         emailFile = tempfile.mkstemp(
@@ -83,59 +94,33 @@ def main():
         l.critical('Could not create temporary email file: %s' % str(e))
         return False
 
+    # Write out email to temporary file
     emailFile.write(str(email))
     emailFile.close()
 
-    # Now send out notifications to admins
-    adminMessage = """Automated message from rsmail020
-
-Received spam candidate with ID {tmpmailID}
-
-Please view attachment for analysis. 
-
-Take action by replying to this message with the following subject:
-
-!CONFIRM {tmpmailID}
-!DELETE {tmpmailID}
-
-To confirm, or delete, the mail. 
-
-Explanation of the attachments
-============
-
-The first attached file will be the sender who contacted Spamutbildning. 
-
-All subsequent attachments are original attachments in one of the following
-formats:
-    {attachmentFormats}
-
-Guide to confirming emails
-============
-
-The attached email must be properly formatted, the header must not be HTML 
-formatted for example. The header and body must be intact as when they 
-arrived to the server. 
-
-It's an admins job to make sure this is so before sending to SpamAssassin
-for training. 
-
-/ Spamutbildning
-""".format(
-    tmpmailID=tmpSuffix,
-    attachmentFormats=','.join(settings.VALID_FORMATS)
-)
+    # Notification message template for admins
+    adminMessage = ADMIN_MSG_TEMPLATE.format(
+        systemName=settings.SYSTEM_NAME,
+        tmpmailID=tmpSuffix,
+        attachmentFormats=', '.join(settings.VALID_FORMATS),
+        admins=', '.join(ADMINS)
+    )
 
     # Create the MIME message
-    newMail = MIMEText(unicode(adminMessage, 'UTF-8'), 'plain', 'UTF-8')
-    m['From'] = 'spamutbildning@rsmail020.skane.se'
-    m['Reply-to'] = 'spamutbildning@rsmail020.skane.se'
-    m['Subject'] = 'New spam candidate: %s' % tmpSuffix
+    newMail = MIMEText(
+        unicode(adminMessage, 'UTF-8'), 
+        'plain', 
+        'UTF-8'
+    )
+    m['From'] = settings.SYSTEM_FROM,
+    m['Reply-to'] = settings.SYSTEM_REPLY-TO,
+    m['Subject'] = SYSTEM_SUBJECT.format(spamID=tmpSuffix),
     m['To'] = ','.join(settings.ADMINS)
 
     try:
-        smtp = smtplib.SMTP('localhost')
+        smtp = smtplib.SMTP(settings.SYSTEM_SMTPHOST)
         smtp.sendmail(
-            'mail@rsmail020.skane.se', 
+            settings.SYSTEM_FROM, 
             settings.ADMINS, 
             m.as_string()
         )
@@ -159,6 +144,9 @@ def adminMail(e=None):
     cmd = None
     arg = None
 
+    if e is None:
+        return False
+
     # First extract the sender mail address
     m = re.search('<([^\s\t\r\n])>$', e.get('from'))
     senderEmail = m.group(1)
@@ -170,10 +158,23 @@ def adminMail(e=None):
         cmd = m.group(1)
         arg = m.group(2)
 
+    if arg == '':
+        return False
+
     if cmd == 'CONFIRM':
         try:
-            os.rename('%s/tmpmail%s' % (settings.TMP_DIR, arg), 
-                      '%s/spam%s' % (settings.CONFIRMED_DIR, arg))
+            os.rename(
+                '%s/%s%s' % (
+                    settings.TMP_DIR, 
+                    settings.TMP_PREFIX,
+                    arg
+                ), 
+                '%s/%s%s' % (
+                    settings.CONFIRMED_DIR, 
+                    settings.SPAM_PREFIX,
+                    arg
+                )
+            )
         except(OSError), e:
             # Really the only case I want adminMail to stop execution...
             # TODO: Raise an exception?
@@ -182,9 +183,13 @@ def adminMail(e=None):
 
     if cmd == 'DELETE':
         try:
-            os.remove('%s/tmpmail%s' % (settings.TMP_DIR, arg))
+            os.remove('%s/%s%s' % (
+                settings.TMP_DIR, 
+                settings.TMP_PREFIX,
+                arg
+            ))
         except(OSError), e:
-            l.critical('Could not delete mail: %s' % arg)
+            l.critical('Could not delete mail: %s: %s' % (arg, str(e)))
             return False
 
     # Return false and proceed with execution by default

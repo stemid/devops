@@ -1,6 +1,15 @@
 # Configuration for spamutbildning.py
 
-# People allowed to send commands
+# Name of this mail system
+SYSTEM_NAME = 'My system'
+SYSTEM_FROM = 'mysystem@system.tld'
+SYSTEM_REPLY-TO = 'mysystem@system.tld'
+SYSTEM_SUBJECT = 'New spam candidate: {spamID}'
+SYSTEM_SMTPHOST = 'localhost'
+
+# People allowed to send commands.
+# Also people who receive notifications of new
+# mail and, in the future, critical log records. 
 ADMINS = [
     'admin@domain.tld',
 ]
@@ -29,3 +38,49 @@ VALID_FORMATS = [
     'text/html',
     'message/rfc822',
 ]
+
+# Template for the notification email sent to admins. 
+ADMIN_MSG_TEMPLATE = """Automated message from {systemName}
+
+Received spam candidate with ID {tmpmailID}
+
+Please view attachment for analysis. 
+
+Take action by replying to this message with the following subject:
+
+!CONFIRM {tmpmailID}
+!DELETE {tmpmailID}
+
+To confirm, or delete, the mail. 
+
+Explanation of the attachments
+============
+
+The first attached file will be the sender who contacted Spamutbildning. 
+
+All subsequent attachments are original attachments in one of the following
+formats:
+    {attachmentFormats}
+
+Guide to confirming emails
+============
+
+The attached email must be properly formatted, the header must not be HTML 
+formatted for example. The header and body must be intact as when they 
+arrived to the server. 
+
+It's an admins job to make sure this is so before sending to SpamAssassin
+for training. 
+
+This email
+============
+
+This email is coming from an automated system and has been sent to the 
+following recipients:
+    {admins}
+
+If you feel that you should not be receiving this email, contacting one 
+of them would be a good idea. 
+
+/ Spamutbildning
+"""
