@@ -1,28 +1,10 @@
 #!/usr/bin/env python
-# Reads an email from stdin
-# Meant to run by sendmail smrsh as mail user
+# See README.md for more info.
+# Configuration settings in settings.py
 # By Stefan.Midjich@cygate.se 2012
 
-# People allowed to send commands
-ADMINS = [
-    'admin@domain.tld',
-]
-
-# Working dir must be writable by mail user and/or group
-WORKING_DIR = '.'
-
-# Logfile
-LOG_FILE = 'spamutbildning.log'
-LOG_MAX_BYTES = 20971520
-LOG_MAX_COPIES = 5
-
-# These will be automagically created if they do not exist
-TMP_DIR = '{pwd}s/tmp'.format(pwd=WORKING_DIR)
-CONFIRMED_DIR = '{pwd}s/confirmed'.format(pwd=WORKING_DIR)
-
-# Goes into filenames of queued mail 
-TMP_PREFIX = 'tmpmail'
-SPAM_PREFIX = 'spam'
+# Import configuration
+import settings
 
 import sys
 import os
@@ -39,12 +21,12 @@ PROC_EUID = os.geteuid()
 PROC_EGID = os.getegid()
 
 # Setup logging
-formatter = logging.Formatter('%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s')
+formatter = logging.Formatter(settings.LOG_FORMAT)
 l = logging.getLogger(__name__)
 h = handlers.RotatingFileHandler(
-    LOG_FILE, 
-    maxBytes=LOG_MAX_BYTES, 
-    backupCount=LOG_MAX_COPIES
+    settings.LOG_FILE, 
+    maxBytes=settings.LOG_MAX_BYTES, 
+    backupCount=settings.LOG_MAX_COPIES
 )
 h.setFormatter(formatter)
 l.addHandler(h)
@@ -52,12 +34,12 @@ l.setLevel(logging.INFO)
 
 def main():
     # Initialize our working environment
-    if initDir(TMP_DIR, PROC_EUID, PROC_EGID, 0750) is False:
-        l.critical('Could not initialize working directory: %s' % TMP_DIR)
+    if initDir(settings.TMP_DIR, PROC_EUID, PROC_EGID, 0750) is False:
+        l.critical('Failed to init working dir: %s' % settings.TMP_DIR)
         return False
 
-    if initDir(CONFIRMED_DIR, PROC_EUID, PROC_EGID, 0750) is False:
-        l.critical('Could not initialize working directory: %s' % CONFIRMED_DIR)
+    if initDir(settings.CONFIRMED_DIR, PROC_EUID, PROC_EGID, 0750) is False:
+        l.critical('Failed to init working dir: %s' % settings.CONFIRMED_DIR)
         return False
 
     # Read email from stdin
@@ -83,18 +65,22 @@ def main():
 
     # If it's not multipart at this point, simply give up
     if email.is_multipart() is False:
-        l.info('Non-multipart input, discarding mail from: %s' % email.get('From'))
+        l.info('Non-multipart, discarding mail from: %s' % email.get('From'))
         return True
 
     # Extract first payload from email
     # Create temporary file for email
     try:
-        emailFile = tempfile.mkstemp(dir=TMP_DIR, prefix=TMP_PREFIX)
-        tmpSuffix = os.path.basename(emailFile[1])[len(TMP_PREFIX):]
+        emailFile = tempfile.mkstemp(
+            dir=settings.TMP_DIR, 
+            prefix=settings.TMP_PREFIX
+        )
+        # Extract the random suffix given to us by tempfile
+        tmpSuffix = os.path.basename(emailFile[1])[len(settings.TMP_PREFIX):]
         emailFile = os.fdopen(emailFile[0], 'w')
         l.info('Created temporary suffix ID for email: %s' % tmpSuffix)
-    except(OSError), e:
-        l.critical('Could not create temporary email file')
+    except(OSError, IOError), e:
+        l.critical('Could not create temporary email file: %s' % str(e))
         return False
 
     emailFile.write(str(email))
@@ -114,24 +100,50 @@ Take action by replying to this message with the following subject:
 
 To confirm, or delete, the mail. 
 
+Explanation of the attachments
+============
+
+The first attached file will be the sender who contacted Spamutbildning. 
+
+All subsequent attachments are original attachments in one of the following
+formats:
+    {attachmentFormats}
+
+Guide to confirming emails
+============
+
+The attached email must be properly formatted, the header must not be HTML 
+formatted for example. The header and body must be intact as when they 
+arrived to the server. 
+
+It's an admins job to make sure this is so before sending to SpamAssassin
+for training. 
+
 / Spamutbildning
-""".format(tmpmailID=tmpSuffix)
+""".format(
+    tmpmailID=tmpSuffix,
+    attachmentFormats=','.join(settings.VALID_FORMATS)
+)
 
     # Create the MIME message
     newMail = MIMEText(unicode(adminMessage, 'UTF-8'), 'plain', 'UTF-8')
     m['From'] = 'spamutbildning@rsmail020.skane.se'
     m['Reply-to'] = 'spamutbildning@rsmail020.skane.se'
     m['Subject'] = 'New spam candidate: %s' % tmpSuffix
-    m['To'] = ','.join(ADMINS)
+    m['To'] = ','.join(settings.ADMINS)
 
     try:
         smtp = smtplib.SMTP('localhost')
-        smtp.sendmail('mail@rsmail020.skane.se', ADMINS, m.as_string())
+        smtp.sendmail(
+            'mail@rsmail020.skane.se', 
+            settings.ADMINS, 
+            m.as_string()
+        )
     except(smtplib.SMTPException), e:
         l.critical('SMTP Exception: %s' % str(e))
         return False
     finally:
-        l.info('Email sent to admins: %s' % ','.join(ADMINS))
+        l.info('Email sent to admins: %s' % ','.join(settings.ADMINS))
         smtp.quit()
 
     return True
@@ -152,7 +164,7 @@ def adminMail(e=None):
     senderEmail = m.group(1)
 
     # Do we have an admin?
-    if senderEmail in ADMINS:
+    if senderEmail in settings.ADMINS:
         # Extract command from subject
         m = re.search('!(CONFIRM|DELETE)\s+([A-Za-z0-9_]+)', e.get('subject'))
         cmd = m.group(1)
@@ -160,8 +172,8 @@ def adminMail(e=None):
 
     if cmd == 'CONFIRM':
         try:
-            os.rename('%s/tmpmail%s' % (TMP_DIR, arg), 
-                      '%s/spam%s' % (CONFIRMED_DIR, arg))
+            os.rename('%s/tmpmail%s' % (settings.TMP_DIR, arg), 
+                      '%s/spam%s' % (settings.CONFIRMED_DIR, arg))
         except(OSError), e:
             # Really the only case I want adminMail to stop execution...
             # TODO: Raise an exception?
@@ -170,7 +182,7 @@ def adminMail(e=None):
 
     if cmd == 'DELETE':
         try:
-            os.remove('%s/tmpmail%s' % (TMP_DIR, arg))
+            os.remove('%s/tmpmail%s' % (settings.TMP_DIR, arg))
         except(OSError), e:
             l.critical('Could not delete mail: %s' % arg)
             return False
