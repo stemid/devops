@@ -11,7 +11,7 @@ import os
 import tempfile
 import email
 from email.parser import Parser
-from email.MIMEText import MIMEText
+from email.MIMEMultipart import MIMEMultipart
 import smtplib
 import logging
 from logging import handlers
@@ -107,7 +107,7 @@ def main():
     )
 
     # Create the MIME message
-    newMail = MIMEText(
+    newMail = MIMEMultipart(
         unicode(adminMessage, 'UTF-8'), 
         'plain', 
         'UTF-8'
