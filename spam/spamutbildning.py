@@ -75,7 +75,7 @@ def main():
     for p in payloads:
         p.content_type = p.get_content_type()
         # Remove any non-matching payloads
-        if p.content_type not in VALID_FORMATS:
+        if p.content_type not in settings.VALID_FORMATS:
             discardedPayloads.append(
                 payloads.pop(payloads.index(p))
             )
