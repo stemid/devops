@@ -99,7 +99,7 @@ def main():
     emailFile.close()
 
     # Notification message template for admins
-    adminMessage = ADMIN_MSG_TEMPLATE.format(
+    adminMessage = settings.ADMIN_MSG_TEMPLATE.format(
         systemName=settings.SYSTEM_NAME,
         tmpmailID=tmpSuffix,
         attachmentFormats=', '.join(settings.VALID_FORMATS),
