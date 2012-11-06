@@ -103,7 +103,7 @@ def main():
         systemName=settings.SYSTEM_NAME,
         tmpmailID=tmpSuffix,
         attachmentFormats=', '.join(settings.VALID_FORMATS),
-        admins=', '.join(ADMINS)
+        admins=', '.join(settings.ADMINS)
     )
 
     # Create the MIME message
@@ -114,7 +114,7 @@ def main():
     )
     m['From'] = settings.SYSTEM_FROM,
     m['Reply-to'] = settings.SYSTEM_REPLY_TO,
-    m['Subject'] = SYSTEM_SUBJECT.format(spamID=tmpSuffix),
+    m['Subject'] = settings.SYSTEM_SUBJECT.format(spamID=tmpSuffix),
     m['To'] = ','.join(settings.ADMINS)
 
     try:
