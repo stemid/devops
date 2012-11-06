@@ -112,17 +112,17 @@ def main():
         'plain', 
         'UTF-8'
     )
-    m['From'] = settings.SYSTEM_FROM,
-    m['Reply-to'] = settings.SYSTEM_REPLY_TO,
-    m['Subject'] = settings.SYSTEM_SUBJECT.format(spamID=tmpSuffix),
-    m['To'] = ','.join(settings.ADMINS)
+    newMail['From'] = settings.SYSTEM_FROM,
+    newMail['Reply-to'] = settings.SYSTEM_REPLY_TO,
+    newMail['Subject'] = settings.SYSTEM_SUBJECT.format(spamID=tmpSuffix),
+    newMail['To'] = ','.join(settings.ADMINS)
 
     try:
         smtp = smtplib.SMTP(settings.SYSTEM_SMTPHOST)
         smtp.sendmail(
             settings.SYSTEM_FROM, 
             settings.ADMINS, 
-            m.as_string()
+            newMail.as_string()
         )
     except(smtplib.SMTPException), e:
         l.critical('SMTP Exception: %s' % str(e))
