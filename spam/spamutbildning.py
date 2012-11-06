@@ -113,7 +113,7 @@ def main():
         'UTF-8'
     )
     m['From'] = settings.SYSTEM_FROM,
-    m['Reply-to'] = settings.SYSTEM_REPLY-TO,
+    m['Reply-to'] = settings.SYSTEM_REPLY_TO,
     m['Subject'] = SYSTEM_SUBJECT.format(spamID=tmpSuffix),
     m['To'] = ','.join(settings.ADMINS)
 

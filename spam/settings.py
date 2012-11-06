@@ -3,7 +3,7 @@
 # Name of this mail system
 SYSTEM_NAME = 'My system'
 SYSTEM_FROM = 'mysystem@system.tld'
-SYSTEM_REPLY-TO = 'mysystem@system.tld'
+SYSTEM_REPLY_TO = 'mysystem@system.tld'
 SYSTEM_SUBJECT = 'New spam candidate: {spamID}'
 SYSTEM_SMTPHOST = 'localhost'
 
