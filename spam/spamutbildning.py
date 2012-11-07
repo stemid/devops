@@ -69,17 +69,6 @@ def main():
         l.info('Non-multipart, discarding mail from: %s' % email.get('From'))
         return True
 
-    # Snatch list of payloads from incoming mail
-    discardedPayloads = []
-    payloads = email.get_payload()
-    for p in payloads:
-        p.content_type = p.get_content_type()
-        # Remove any non-matching payloads
-        if p.content_type not in settings.VALID_FORMATS:
-            discardedPayloads.append(
-                payloads.pop(payloads.index(p))
-            )
-
     # Create temporary file for email
     try:
         emailFile = tempfile.mkstemp(
@@ -112,9 +101,21 @@ def main():
     newMail['Reply-to'] = settings.SYSTEM_REPLY_TO,
     newMail['Subject'] = settings.SYSTEM_SUBJECT.format(spamID=tmpSuffix),
     newMail['To'] = ','.join(settings.ADMINS)
+    newMail.preamble = 'You need a MIME mail reader to read this mail.'
 
-    # Attach payloads list from earlier
-    newMail.attach(payloads)
+    # Snatch list of payloads from incoming mail
+    discardedPayloads = []
+    payloads = email.get_payload()
+    for p in payloads:
+        p.content_type = p.get_content_type()
+        # Remove any non-matching payloads
+        if p.content_type not in settings.VALID_FORMATS:
+            discardedPayloads.append(
+                payloads.pop(payloads.index(p))
+            )
+        else:
+            # Attach the payload
+            newMail.attach(p)
 
     try:
         smtp = smtplib.SMTP(settings.SYSTEM_SMTPHOST)
@@ -127,7 +128,7 @@ def main():
         l.critical('SMTP Exception: %s' % str(e))
         return False
     finally:
-        l.info('Email sent to admins: %s' % ','.join(settings.ADMINS))
+        l.info('Email sent to admins: %s' % ', '.join(settings.ADMINS))
         smtp.quit()
 
     return True
