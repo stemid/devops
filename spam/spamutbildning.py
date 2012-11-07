@@ -11,7 +11,7 @@ import os
 import tempfile
 import email
 from email.parser import Parser
-from email.MIMEMultipart import MIMEMultipart
+from email.mime.multipart import MIMEMultipart
 import smtplib
 import logging
 from logging import handlers
@@ -107,15 +107,14 @@ def main():
     )
 
     # Create the MIME message
-    newMail = MIMEMultipart(
-        unicode(adminMessage, 'UTF-8'), 
-        'plain', 
-        'UTF-8'
-    )
+    newMail = MIMEMultipart()
     newMail['From'] = settings.SYSTEM_FROM,
     newMail['Reply-to'] = settings.SYSTEM_REPLY_TO,
     newMail['Subject'] = settings.SYSTEM_SUBJECT.format(spamID=tmpSuffix),
     newMail['To'] = ','.join(settings.ADMINS)
+
+    # Attach payloads list from earlier
+    newMail.attach(payloads)
 
     try:
         smtp = smtplib.SMTP(settings.SYSTEM_SMTPHOST)
