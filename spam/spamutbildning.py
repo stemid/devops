@@ -12,6 +12,7 @@ import tempfile
 import email
 from email.parser import Parser
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import smtplib
 import logging
 from logging import handlers
