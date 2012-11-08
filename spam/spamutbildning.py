@@ -31,7 +31,7 @@ h = handlers.RotatingFileHandler(
 )
 h.setFormatter(formatter)
 l.addHandler(h)
-l.setLevel(logging.INFO)
+l.setLevel(logging.DEBUG)
 
 def main():
     # Initialize our working environment
