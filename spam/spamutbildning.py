@@ -100,12 +100,12 @@ def main():
     discardedPayloads = []
     payloads = email.get_payload()
     for p in payloads:
-        # Remove any non-matching payloads
-        if p.get_content_type() not in settings.VALID_FORMATS:
-            discardedPayloads.append(
-                payloads.pop(payloads.index(p))
-            )
-        else:
+#        # Remove any non-matching payloads
+#        if p.get_content_type() not in settings.VALID_FORMATS:
+#            discardedPayloads.append(
+#                payloads.pop(payloads.index(p))
+#            )
+#        else:
             # Add header to payload and make it an attachment file
             p.add_header(
                 'Content-Disposition', 
