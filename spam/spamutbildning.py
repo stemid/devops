@@ -129,7 +129,7 @@ def main():
     newMail.attach(body)
 
     # Debug
-    o = open('testoutput', 'w')
+    o = open('/usr/share/devops/spam/testoutput', 'w')
     o.write(newMail.as_string())
     o.close()
 
