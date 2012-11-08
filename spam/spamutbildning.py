@@ -78,7 +78,7 @@ def main():
         # Extract the random suffix given to us by tempfile
         tmpSuffix = os.path.basename(emailFile[1])[len(settings.TMP_PREFIX):]
         emailFile = os.fdopen(emailFile[0], 'w')
-        l.info('Created temporary suffix ID for email: %s' % tmpSuffix)
+        l.debug('Created temporary suffix ID for email: %s' % tmpSuffix)
     except(OSError, IOError), e:
         l.critical('Could not create temporary email file: %s' % str(e))
         return False
@@ -86,16 +86,8 @@ def main():
     # Write out email to temporary file
     emailFile.write(str(email))
     emailFile.close()
+    l.debug('Wrote temporary email file: %s' % emailFile.name)
 
-    # Notification message template for admins
-    adminMessage = settings.ADMIN_MSG_TEMPLATE.format(
-        systemName=settings.SYSTEM_NAME,
-        tmpmailID=tmpSuffix,
-        attachmentFormats=', '.join(settings.VALID_FORMATS),
-        admins=', '.join(settings.ADMINS)
-    )
-
-    # Create the MIME message
     newMail = MIMEMultipart()
     newMail['From'] = settings.SYSTEM_FROM,
     newMail['Reply-to'] = settings.SYSTEM_REPLY_TO,
@@ -113,16 +105,36 @@ def main():
                 payloads.pop(payloads.index(p))
             )
         else:
-            # Attach the payload
+            # Add header to payload and make it an attachment file
+            p.add_header(
+                'Content-Disposition', 
+                'attachment',
+                filename='VIRUSKANDIDAT.EML'
+            )
+            # Attach the payload to main message
             newMail.attach(p)
             l.info('Payload attached to new mail: %s' % str(p))
 
+    # Notification message template for admins
+    adminMessage = settings.ADMIN_MSG_TEMPLATE.format(
+        systemName=settings.SYSTEM_NAME,
+        tmpmailID=tmpSuffix,
+        attachmentFormats=', '.join(settings.VALID_FORMATS),
+        admins=', '.join(settings.ADMINS)
+    )
+
+    # Add body of message last according to RFC2046
+    body = MIMEText(adminMessage, 'plain')
+    newMail.attach(body)
+
+    # Send the message
+    messageText = newMail.as_string()
     try:
         smtp = smtplib.SMTP(settings.SYSTEM_SMTPHOST)
         smtp.sendmail(
             settings.SYSTEM_FROM, 
             settings.ADMINS, 
-            newMail.as_string()
+            messageText
         )
     except(smtplib.SMTPException), e:
         l.critical('SMTP Exception: %s' % str(e))
