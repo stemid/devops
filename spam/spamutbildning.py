@@ -100,12 +100,6 @@ def main():
     discardedPayloads = []
     payloads = email.get_payload()
     for p in payloads:
-#        # Remove any non-matching payloads
-#        if p.get_content_type() not in settings.VALID_FORMATS:
-#            discardedPayloads.append(
-#                payloads.pop(payloads.index(p))
-#            )
-#        else:
         if p.get_content_type() in settings.VALID_FORMATS:
             # Add header to payload and make it an attachment file
             p.add_header(
@@ -115,7 +109,7 @@ def main():
             )
             # Attach the payload to main message
             newMail.attach(p)
-            l.info('Payload attached to new mail')
+            l.info('Payload attached to new mail: %s' % p.get_content_type())
 
     # Notification message template for admins
     adminMessage = settings.ADMIN_MSG_TEMPLATE.format(
