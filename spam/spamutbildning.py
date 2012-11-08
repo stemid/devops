@@ -107,15 +107,15 @@ def main():
     discardedPayloads = []
     payloads = email.get_payload()
     for p in payloads:
-        p.content_type = p.get_content_type()
         # Remove any non-matching payloads
-        if p.content_type not in settings.VALID_FORMATS:
+        if p.get_content_type() not in settings.VALID_FORMATS:
             discardedPayloads.append(
                 payloads.pop(payloads.index(p))
             )
         else:
             # Attach the payload
             newMail.attach(p)
+            l.info('Payload attached to new mail: %s' % str(p))
 
     try:
         smtp = smtplib.SMTP(settings.SYSTEM_SMTPHOST)
