@@ -62,12 +62,12 @@ def main():
         # only continue if it returns False.
         if adminMail():
             return True
-        l.info('Admin command did not pan out, proceeding')
+        l.debug('Admin command did not pan out, proceeding')
 
     # If it's not multipart at this point, simply give up.
     # Admins are allowed to send non-multipart commands. 
     if email.is_multipart() is False:
-        l.info('Non-multipart, discarding mail from: %s' % email.get('From'))
+        l.debug('Non-multipart, discarding mail from: %s' % email.get('From'))
         return True
 
     # Create temporary file for email
@@ -127,6 +127,11 @@ def main():
     # Add body of message last according to RFC2046
     body = MIMEText(adminMessage, 'plain')
     newMail.attach(body)
+
+    # Debug
+    o = open('testoutput', 'w')
+    o.write(newMail.as_string())
+    o.close()
 
     # Send the message
     messageText = newMail.as_string()
