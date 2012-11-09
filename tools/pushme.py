@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Use pushover.net to notify of 
 # long running commands finishing. 
+# Run as: pushme mysqlrepair -u root -p centstorage
 
 AppToken = 'your app token'
 UserToken = 'your user token'
