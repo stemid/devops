@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import pdb
 from email.parser import Parser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -23,7 +24,9 @@ body = MIMEText('This is some body')
 newMail.attach(body)
 
 o = open('testoutput', 'w')
-o.write(newMail.as_string())
+pdb.set_trace()
+pdb.run('newBody = newMail.as_string()')
+pdb.run('o.write(newMail.as_string())')
 o.close()
 
 sys.exit(0)

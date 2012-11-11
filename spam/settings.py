@@ -26,6 +26,7 @@ LOG_FORMAT = '%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s'
 # These will be automagically created if they do not exist
 TMP_DIR = '{pwd}/tmp'.format(pwd=WORKING_DIR)
 CONFIRMED_DIR = '{pwd}/confirmed'.format(pwd=WORKING_DIR)
+SENT_DIR = '{pwd}/sent'.format(pwd=WORKING_DIR)
 
 # Go into filenames of queued mail 
 TMP_PREFIX = 'tmpmail'
