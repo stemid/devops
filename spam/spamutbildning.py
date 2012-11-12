@@ -6,7 +6,6 @@
 # Import configuration
 import settings
 
-import pdb
 import sys
 import os
 import tempfile
@@ -246,6 +245,7 @@ def adminMail(e=None):
     # Return false and proceed with execution by default
     return False
 
+# Helper function to create directories
 def initDir(d=None, dirowner=0, dirgroup=0, dirmode=0000):
     # Check if dir exists first
     try:
