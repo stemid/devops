@@ -77,6 +77,19 @@ def main(f=None):
         l.debug('Non-multipart, discarding mail from: %s' % inMail.get('From'))
         return True
 
+    # Take first payload from incoming mail
+    inPayloads = inMail.get_payload()
+    if len(inPayloads) < 2:
+        l.critical('Must have at least one attachment in incoming mail.')
+        return False
+
+    firstAttachment = inPayloads[1]
+
+    if firstAttachment.get_content_type() not in settings.VALID_FORMATS:
+        l.critical('Attachment type is invalid: %s' %
+                   firstAttachment.get_content_type())
+        return False
+
     # Create temporary file for incomming email
     try:
         emailFile = tempfile.mkstemp(
@@ -85,15 +98,14 @@ def main(f=None):
         )
         # Extract the random suffix given to us by tempfile
         tmpSuffix = os.path.basename(emailFile[1])[len(settings.TMP_PREFIX):]
-        emailFile = os.fdopen(emailFile[0], 'w')
+        emailFile = os.fdopen(emailFile[0], 'wb')
     except(OSError, IOError), e:
         l.critical('Could not create temporary email file: %s' % str(e))
         return False
     finally:
         l.debug('Created temporary suffix ID for email: %s' % tmpSuffix)
 
-    # Write out email to temporary file
-    emailFile.write(str(inMail))
+    emailFile.write(firstAttachment.as_string())
     emailFile.close()
     l.debug('Wrote temporary email file: %s' % emailFile.name)
 
@@ -109,8 +121,7 @@ def main(f=None):
 
     # Snatch list of payloads from incoming mail
     discardedPayloads = []
-    payloads = inMail.get_payload()
-    for p in payloads:
+    for p in inPayloads:
         if p.get_content_type() in settings.VALID_FORMATS:
             # Add header to payload and make it an attachment file
             p.add_header(
@@ -203,6 +214,11 @@ def adminMail(e=None):
                     arg
                 )
             )
+            l.info('Confirmed spam file: %s/%s%s' % (
+                settings.CONFIRMED_DIR,
+                settings.SPAM_PREFIX,
+                arg
+            ))
             return True
         except(OSError), e:
             # Really the only case I want adminMail to stop execution...
@@ -214,6 +230,11 @@ def adminMail(e=None):
         try:
             os.remove('%s/%s%s' % (
                 settings.TMP_DIR, 
+                settings.TMP_PREFIX,
+                arg
+            ))
+            l.info('Deleting ham file: %s/%s%s' % (
+                settings.TMP_DIR,
                 settings.TMP_PREFIX,
                 arg
             ))
