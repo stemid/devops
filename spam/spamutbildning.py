@@ -116,7 +116,7 @@ def main(f=None):
             p.add_header(
                 'Content-Disposition', 
                 'attachment',
-                filename='VIRUSKANDIDAT.EML'
+                filename='Viruskandidat_%s.eml' % tmpSuffix
             )
             # Attach the payload to main message
             newMail.attach(p)
