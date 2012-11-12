@@ -169,12 +169,13 @@ def adminMail(e=None):
     try:
         m = re.search('<([^\s\t\r\n]+)>$', e['from'])
         senderEmail = m.group(1)
+        l.debug('Found sender email: %s' % senderEmail)
     except(re.error, IndexError), e:
         l.critical('Caught exception: %s' % str(e))
         return False
 
     # Do we have an admin?
-    if senderEmail in settings.ADMINS:
+    if senderEmail.lower() in settings.ADMINS:
         # Extract command from subject
         try:
             m = re.search('!(CONFIRM|DELETE)\s+([A-Za-z0-9_]+)', e.get('subject'))
@@ -202,6 +203,7 @@ def adminMail(e=None):
                     arg
                 )
             )
+            return True
         except(OSError), e:
             # Really the only case I want adminMail to stop execution...
             # TODO: Raise an exception?
@@ -215,6 +217,7 @@ def adminMail(e=None):
                 settings.TMP_PREFIX,
                 arg
             ))
+            return True
         except(OSError), e:
             l.critical('Could not delete mail: %s: %s' % (arg, str(e)))
             return False

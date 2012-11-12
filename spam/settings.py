@@ -10,6 +10,7 @@ SYSTEM_SMTPHOST = 'localhost'
 # People allowed to send commands.
 # Also people who receive notifications of new
 # mail and, in the future, critical log records. 
+# MUST BE ALL LOWER CASE! 
 ADMINS = [
     'admin@domain.tld',
 ]
