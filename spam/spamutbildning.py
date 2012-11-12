@@ -166,15 +166,24 @@ def adminMail(e=None):
         return False
 
     # First extract the sender mail address
-    m = re.search('<([^\s\t\r\n])>$', e.get('from'))
-    senderEmail = m.group(1)
+    try:
+        m = re.search('<([^\s\t\r\n]+)>$', e['from'])
+        senderEmail = m.group(1)
+    except(re.error, IndexError), e:
+        l.critical('Caught exception: %s' % str(e))
+        return False
 
     # Do we have an admin?
     if senderEmail in settings.ADMINS:
         # Extract command from subject
-        m = re.search('!(CONFIRM|DELETE)\s+([A-Za-z0-9_]+)', e.get('subject'))
-        cmd = m.group(1)
-        arg = m.group(2)
+        try:
+            m = re.search('!(CONFIRM|DELETE)\s+([A-Za-z0-9_]+)', e.get('subject'))
+            cmd = m.group(1)
+            arg = m.group(2)
+            l.debug('Extracted cmd[%s], arg[%s]' % (cmd, arg))
+        except(re.error, IndexError), e:
+            l.critical('Caught exception: %s' % str(e))
+            return False
 
     if arg == '':
         return False
