@@ -110,6 +110,8 @@ def main(f=None):
     # Create the new mail
     newMail = MIMEMultipart()
 
+    # Need to learn how to use __setitem__ with dictionary 
+    # mapping style instead. 
     newMail.add_header('From', settings.SYSTEM_FROM)
     newMail.add_header('Reply-to', settings.SYSTEM_REPLY_TO)
     newMail.add_header('Subject',
