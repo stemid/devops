@@ -13,7 +13,6 @@ import email
 from email.parser import Parser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.generator import Generator
 import smtplib
 import logging
 from logging import handlers
