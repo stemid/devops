@@ -107,7 +107,8 @@ def main(f=None):
             dir = settings.SENT_DIR,
             prefix = ''
         )
-        outMailFO = os.fdopen(outMailTemp[0], 'rw')
+        # Open file for binary reading/writing
+        outMailFO = os.fdopen(outMailTemp[0], 'r+b')
         g = Generator(outMailFO)
     except(IOError, OSError), e:
         l.critical('Could not create temporary file: %s' % str(e))
@@ -118,14 +119,15 @@ def main(f=None):
 
     # Create the new mail
     newMail = MIMEMultipart()
+
+    # Convert the new mail into Message format before payload is attached
+    outMail = email.message_from_string(newMail.as_string())
+
     newMail['From'] = settings.SYSTEM_FROM,
     newMail['Reply-to'] = settings.SYSTEM_REPLY_TO,
     newMail['Subject'] = settings.SYSTEM_SUBJECT.format(spamID=tmpSuffix),
     newMail['To'] = ','.join(settings.ADMINS)
     newMail.preamble = 'You need a MIME mail reader to read this mail.'
-
-    # Convert the new mail into Message format before payload is attached
-    outMail = email.message_from_string(newMail.as_string())
 
     # Snatch list of payloads from incoming mail
     discardedPayloads = []
@@ -163,9 +165,9 @@ def main(f=None):
     l.debug('Rewound FD position to: pos %d' % outMailFO.tell())
 
     # Read the outbox file into memory, and close it
-    messageText = sentMail.read()
+    messageText = outMailFO.read()
     l.debug('Read email into memory: %d bytes' % len(messageText))
-    sentMail.close()
+    outMailFO.close()
 
     # Send the message
     try:
@@ -175,12 +177,12 @@ def main(f=None):
             settings.ADMINS, 
             messageText
         )
+        smtp.quit()
     except(smtplib.SMTPException), e:
         l.critical('SMTP Exception: %s' % str(e))
         return False
     finally:
         l.info('Email sent to admins: %s' % ', '.join(settings.ADMINS))
-        smtp.quit()
 
     return True
 
