@@ -50,10 +50,6 @@ def main(f=None):
         l.critical('Failed to init working dir: %s' % settings.CONFIRMED_DIR)
         return False
 
-    if initDir(settings.SENT_DIR, PROC_EUID, PROC_EGID, 0750) is False:
-        l.critical('Failed to init working dir: %s' % settings.SENT_DIR)
-        return False
-
     # Read email from stdin
     try:
         inMail = Parser().parse(fo)
@@ -101,32 +97,14 @@ def main(f=None):
     emailFile.close()
     l.debug('Wrote temporary email file: %s' % emailFile.name)
 
-    # Open outbox file
-    try:
-        outMailTemp = tempfile.mkstemp(
-            dir = settings.SENT_DIR,
-            prefix = ''
-        )
-        # Open file for binary reading/writing
-        outMailFO = os.fdopen(outMailTemp[0], 'r+b')
-        g = Generator(outMailFO)
-    except(IOError, OSError), e:
-        l.critical('Could not create temporary file: %s' % str(e))
-        return False
-    finally:
-        l.debug('Created temporary file: %s' % outMailTemp[1])
-        l.info('Generator initialized on: %s' % outMailTemp[1])
-
     # Create the new mail
     newMail = MIMEMultipart()
 
-    # Convert the new mail into Message format before payload is attached
-    outMail = email.message_from_string(newMail.as_string())
-
-    newMail['From'] = settings.SYSTEM_FROM,
-    newMail['Reply-to'] = settings.SYSTEM_REPLY_TO,
-    newMail['Subject'] = settings.SYSTEM_SUBJECT.format(spamID=tmpSuffix),
-    newMail['To'] = ','.join(settings.ADMINS)
+    newMail.add_header('From', settings.SYSTEM_FROM)
+    newMail.add_header('Reply-to', settings.SYSTEM_REPLY_TO)
+    newMail.add_header('Subject',
+                       settings.SYSTEM_SUBJECT.format(spamID=tmpSuffix))
+    newMail.add_header('To', ','.join(settings.ADMINS))
     newMail.preamble = 'You need a MIME mail reader to read this mail.'
 
     # Snatch list of payloads from incoming mail
@@ -141,7 +119,7 @@ def main(f=None):
                 filename='VIRUSKANDIDAT.EML'
             )
             # Attach the payload to main message
-            outMail.attach(p)
+            newMail.attach(p)
             l.info('Payload attached to new mail: %s' % p.get_content_type())
 
     # Notification message template for admins
@@ -154,20 +132,7 @@ def main(f=None):
 
     # Add body of message last according to RFC2046
     body = MIMEText(adminMessage, 'plain')
-    outMail.attach(body)
-
-    # Generate an outbox file for the new mail
-    g.flatten(outMail)
-    l.debug('Flattened Message into file: pos %d' % outMailFO.tell())
-
-    # Rewind fd of outbox file
-    outMailFO.seek(0)
-    l.debug('Rewound FD position to: pos %d' % outMailFO.tell())
-
-    # Read the outbox file into memory, and close it
-    messageText = outMailFO.read()
-    l.debug('Read email into memory: %d bytes' % len(messageText))
-    outMailFO.close()
+    newMail.attach(body)
 
     # Send the message
     try:
@@ -175,7 +140,7 @@ def main(f=None):
         smtp.sendmail(
             settings.SYSTEM_FROM, 
             settings.ADMINS, 
-            messageText
+            newMail.as_string()
         )
         smtp.quit()
     except(smtplib.SMTPException), e:
