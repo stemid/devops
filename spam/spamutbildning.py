@@ -81,12 +81,8 @@ def main(f=None):
         l.critical('Must have at least one attachment in incoming mail.')
         return False
 
-    firstAttachment = inPayloads[1]
-
-    if firstAttachment.get_content_type() not in settings.VALID_FORMATS:
-        l.critical('Attachment type is invalid: %s' %
-                   firstAttachment.get_content_type())
-        return False
+    # Skip the first payload assuming it is the sender mail
+    inPayloads = inPayloads[1:]
 
     # Create temporary file for incomming email
     try:
@@ -103,7 +99,9 @@ def main(f=None):
     finally:
         l.debug('Created temporary suffix ID for email: %s' % tmpSuffix)
 
-    emailFile.write(firstAttachment.as_string())
+    # Write second payload of incoming mail to tmpfile. This should 
+    # include all the payloads of the attached spam. 
+    emailFile.write(inPayloads[0].as_string())
     emailFile.close()
     l.debug('Wrote temporary email file: %s' % emailFile.name)
 
