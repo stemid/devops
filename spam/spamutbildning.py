@@ -34,10 +34,10 @@ l.addHandler(h)
 l.setLevel(logging.DEBUG)
 
 def main(f=None):
-    if f is not None:
-        fo = f
+    if f not None:
+        fObject = f
     else:
-        fo = sys.stdin
+        fObject = sys.stdin
 
     # Initialize our working environment
     if initDir(settings.TMP_DIR, PROC_EUID, PROC_EGID, 0750) is False:
@@ -50,7 +50,7 @@ def main(f=None):
 
     # Read email from stdin
     try:
-        inMail = Parser().parse(fo)
+        inMail = Parser().parse(fObject)
     except(email.errors.MessageParseError, email.errors.HeaderParseError), e:
         l.critical('Could not parse email: %s' % str(e))
         return False
