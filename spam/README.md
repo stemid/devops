@@ -21,4 +21,6 @@ TODO
 
   * Add logging handler for sending critical errors to admins
   * http://docs.python.org/2/library/logging.handlers.html#logging.handlers.SMTPHandler
-  * Investigate the possibility of raising an exception from adminMail()
+  * Change from confirmed to spam and ham directories.
+  * Change CONFIRM command to SPAM and HAM instead and learn which is ham.
+  * sa-learn for ham as well as spam

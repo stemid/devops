@@ -20,7 +20,6 @@ import httplib
 import urllib
 import datetime
 import traceback
-import argparse
 
 # Exit if no arguments provided
 if len(sys.argv[1:]) < 1:
