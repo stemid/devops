@@ -1,0 +1,21 @@
+# Must configure this before attempting science!
+
+#JAVA_HOME=/java
+#JAVA_OPTS="-Xms512m -Xmx1024m -XX:MaxPermSize=256m -Dorg.jboss.resolver.warning=true"
+#JBOSS_HOME=/tools/jboss
+#JBOSS_NATIVE_LIBPATH="$JBOSS_HOME/bin/native/lib64"
+#JBOSS_BOOT_CLASSPATH="$JBOSS_HOME/bin/run.jar"
+#JBOSS_ENDORSED_DIRS="$JBOSS_HOME/lib/endorsed"
+#DEFAULT_ARGS=""
+
+# These are used for safe-stop argument as a java client
+# that issues the org.jboss.Shutdown command to Jboss. 
+#JBOSS_HOST=
+#JBOSS_CLIENT_PORT=
+
+# Enable -server for OpenJDK and Hotspot
+#JAVA_OPTS="-server $JAVA_OPTS"
+
+# Any custom variables here
+#export MY_HOME=/home/myuser
+
