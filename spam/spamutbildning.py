@@ -61,13 +61,15 @@ def main(f=None):
     # First find out if it's a command from an admin, and act on that.
     if (inMail.get('Subject').startswith('!DELETE ') or
         inMail.get('Subject').startswith('!CONFIRM ')):
-        l.info('Found admin command in subject: %s' % inMail.get('Subject'))
-        # If it has any of these commands in its subject we 
-        # process the email with a different function and 
-        # only continue if it returns False.
-        if adminMail(inMail):
-            return True
-        l.debug('Admin command did not pan out, proceeding')
+        l.debug('Found admin command in subject: %s' % inMail.get('Subject'))
+        try:
+            if adminMail(inMail):
+                return True
+        except(AdminError), e:
+            l.critical('Caught administrative exception: %s' % str(e))
+            return False
+        finally:
+            l.debug('Admin command did not pan out, proceeding')
 
     # If it's not multipart at this point, simply give up.
     # Admins are allowed to send non-multipart commands. 
@@ -160,11 +162,11 @@ def main(f=None):
 
     return True
 
-# Administration function to process command mails
-# This returns back to main() even if there is an 
-# error condition. Main() is better equipped to handle
-# it, and this way execution can proceed in case of
-# accidental execution of adminMail().
+# Administration function to process command mails.
+# Raises AdminError exception if execution should stop. 
+# Most likely execution should stop because otherwise 
+# the incoming mail keeps being processed as a spam
+# candidate. 
 def adminMail(e=None):
     import re
 
@@ -172,6 +174,7 @@ def adminMail(e=None):
     arg = None
 
     if e is None:
+        raise AdminError('Squawk! Polly shouldn\'t be!')
         return False
 
     # First extract the sender mail address
@@ -180,7 +183,7 @@ def adminMail(e=None):
         senderEmail = m.group(1)
         l.debug('Found sender email: %s' % senderEmail)
     except(re.error, IndexError), e:
-        l.critical('Caught exception: %s' % str(e))
+        raise AdminError('Malformed sender address: %s' % str(e))
         return False
 
     # Do we have an admin?
@@ -192,7 +195,7 @@ def adminMail(e=None):
             arg = m.group(2)
             l.debug('Extracted cmd[%s], arg[%s]' % (cmd, arg))
         except(re.error, IndexError), e:
-            l.critical('Caught exception: %s' % str(e))
+            raise AdminError('Malformed command: %s' % str(e))
             return False
 
     if arg == '':
@@ -219,9 +222,7 @@ def adminMail(e=None):
             ))
             return True
         except(OSError), e:
-            # Really the only case I want adminMail to stop execution...
-            # TODO: Raise an exception?
-            l.critical('Could not move mail: %s' % arg)
+            raise AdminError('Move mail: %s' % arg)
             return False
 
     if cmd == 'DELETE':
@@ -238,7 +239,7 @@ def adminMail(e=None):
             ))
             return True
         except(OSError), e:
-            l.critical('Could not delete mail: %s: %s' % (arg, str(e)))
+            raise AdminError('Delete mail: %s: %s' % (arg, str(e)))
             return False
 
     # Return false and proceed with execution by default
@@ -269,6 +270,14 @@ def initDir(d=None, dirowner=0, dirgroup=0, dirmode=0000):
                            (d, str(e)))
                 return False
     return True
+
+# Admin exception for adminMail() function
+class AdminError(Exception):
+    def __init__(self, errstr):
+        self.errstr = errstr
+
+    def __str__(self):
+        return repr(self.errstr)
 
 if __name__ == '__main__':
     if main():
