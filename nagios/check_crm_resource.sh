@@ -5,8 +5,6 @@
 #  Cmnd_Alias	CRM_MON = /usr/sbin/crm_mon
 #  nagios	ALL=NOPASSWD: CRM_MON
 
-# TODO: Finish tomorrow, getting late... =|
-
 usage() {
 	cat <<USAGE
 $0 -w <range> -c <range> [-r <rsc>]
@@ -14,6 +12,9 @@ $0 -w <range> -c <range> [-r <rsc>]
 Options:
 	-h 
 		This help text.
+
+	-H
+		Host node to check resource status for. 
 
 	-w <range>
 		Warning threshold in min:max format. 
@@ -40,13 +41,12 @@ CRITICAL=2
 UNKNOWN=3
 
 # Regex patterns
-shopt -s nocasematch
 RangePattern='([[:digit:]]*):([[:digit:]]*)'
 defaultFilterPattern='([[:alpha:]]+): \
 	([[:digit:]]+) node[s]? online, ([[:digit:]]+) resources configured'
 nodesPattern='^([[:digit:]]+) Node[s]? configured, ([[:digit:]]+) expected vote[s]?$'
 resPattern='^([[:digit:]]+) Resource[s]? configured\.$'
-nodePattern='^'
+nodePattern='^Node ([[:alnum:]\-]+): ([[:alpha:]]+)$'
 
 if ! which crm_mon; then
 	echo 'UNKNOWN: Must have crm_mon in $PATH for nagios' 1>&2 && exit $UNKNOWN
@@ -95,9 +95,25 @@ while [ -n "$1" ]; do
 	esac
 done
 
-if [[ "$resPattern" == 'r' ]] # Normal resource filter
+if [ -n "$resPattern" ] # Have resource filter specified
 	while IFS= read -r crmOut; do
-		if [[ "$crmOut" =~ $nodesPattern
+		if [[ "$crmOut" =~ $nodesPattern ]]; then
+			totalNodes=${BASH_REMATCH[1]:-0}
+			totalQuorum=${BASH_REMATCH[2]:-0}
+		fi
+
+		if [[ "$crmOut" =~ $resPattern ]]; then
+			totalServices=${BASH_REMATCH[1]:-0}
+		fi
+
+		# Activate case-insensitive matching for the next matches
+		shopt -s nocasematch
+		if [[ "$crmOut" =~ $nodePattern ]]; then
+			nodeName=${BASH_REMATCH[1]}
+			nodeState=${BASH_REMATCH[2]:-'standby'}
+		fi
+		# Deactivate case-insensitive matching
+		shopt -u nocasematch
 	done <<<$(crm_mon -1nNQ)
 else if [[ $(crm_mon -s) =~ $defaultFilterPattern ]]; then
 	crmStatus=${BASH_REMATCH[1]:-'Unknown'}
