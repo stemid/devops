@@ -260,15 +260,15 @@ def initDir(d=None, dirowner=0, dirgroup=0, dirmode=0000):
             return False
         finally:
             dirStat = os.stat(d)
-    finally:
-        # Check its permissions
-        if dirStat.st_uid != dirowner or dirStat.st_gid != dirgroup:
-            try:
-                os.chown(d, dirowner, dirgroup)
-            except(OSError, IOError), e:
-                l.critical('Could not set owner of directory: %s: %s' %
-                           (d, str(e)))
-                return False
+
+    # Check its permissions
+    if dirStat.st_uid != dirowner or dirStat.st_gid != dirgroup:
+        try:
+            os.chown(d, dirowner, dirgroup)
+        except(OSError, IOError), e:
+            l.critical('Could not set owner of directory: %s: %s' %
+                       (d, str(e)))
+            return False
     return True
 
 # Admin exception for adminMail() function
