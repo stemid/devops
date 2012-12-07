@@ -63,7 +63,7 @@ def main(f=None):
         inMail.get('Subject').startswith('!SPAM ')):
         l.debug('Found admin command in subject: %s' % inMail.get('Subject'))
         try:
-            if adminMail(inMail):
+            if procAdminCmd(inMail):
                 return True
         except(AdminError), e:
             l.critical('Caught administrative exception: %s' % str(e))
@@ -86,6 +86,21 @@ def main(f=None):
     # Skip the first payload assuming it is the sender mail
     inPayloads = inPayloads[1:]
 
+    # At this point we will handle each payload as a separate 
+    # spam candidate. 
+    for p in inPayloads:
+        # Only proceed if the payload is in a valid format.
+        if p.get_content_type() in settings.VALID_FORMATS:
+            try:
+                sendAdminMail(settings.ADMINS, p)
+            except(AdminError), e:
+                l.critical('Admin error: %s' % str(e))
+
+    return True
+
+# This handles processing of the candidate payloads 
+# and notifications to admins. 
+def sendAdminMail(rcpts=None, payload=None):
     # Create temporary file for incomming email
     try:
         emailFile = tempfile.mkstemp(
@@ -96,14 +111,15 @@ def main(f=None):
         tmpSuffix = os.path.basename(emailFile[1])[len(settings.TMP_PREFIX):]
         emailFile = os.fdopen(emailFile[0], 'wb')
     except(OSError, IOError), e:
-        l.critical('Could not create temporary email file: %s' % str(e))
+        raise AdminError('Could not create temporary email file: %s' % str(e))
         return False
     finally:
         l.debug('Created temporary suffix ID for email: %s' % tmpSuffix)
 
-    # Write second payload of incoming mail to tmpfile. This should 
-    # include all the payloads of the attached spam. 
-    emailFile.write(inPayloads[0].as_string())
+    # Write payload to tmpfile. This should include all 
+    # the payloads of the attached spam. 
+    # NOTE: Each payload is in fact a tree of payloads. 
+    emailFile.write(payload.as_string())
     emailFile.close()
     l.debug('Wrote temporary email file: %s' % emailFile.name)
 
@@ -119,19 +135,15 @@ def main(f=None):
     newMail.add_header('To', ','.join(settings.ADMINS))
     newMail.preamble = 'You need a MIME mail reader to read this mail.'
 
-    # Snatch list of payloads from incoming mail
-    discardedPayloads = []
-    for p in inPayloads:
-        if p.get_content_type() in settings.VALID_FORMATS:
-            # Add header to payload and make it an attachment file
-            p.add_header(
-                'Content-Disposition', 
-                'attachment',
-                filename='Viruskandidat_%s.eml' % tmpSuffix
-            )
-            # Attach the payload to main message
-            newMail.attach(p)
-            l.info('Payload attached to new mail: %s' % p.get_content_type())
+    # Add header to payload and make it an attachment file
+    payload.add_header(
+        'Content-Disposition', 
+        'attachment',
+        filename='Viruskandidat_%s.eml' % tmpSuffix
+    )
+    # Attach the payload to main message
+    newMail.attach(payload)
+    l.info('Payload attached to new mail: %s' % payload.get_content_type())
 
     # Notification message template for admins
     adminMessage = settings.ADMIN_MSG_TEMPLATE.format(
@@ -155,7 +167,7 @@ def main(f=None):
         )
         smtp.quit()
     except(smtplib.SMTPException), e:
-        l.critical('SMTP Exception: %s' % str(e))
+        raise AdminError('SMTP Exception: %s' % str(e))
         return False
     finally:
         l.info('Email sent to admins: %s' % ', '.join(settings.ADMINS))
@@ -167,7 +179,7 @@ def main(f=None):
 # Most likely execution should stop because otherwise 
 # the incoming mail keeps being processed as a spam
 # candidate. 
-def adminMail(e=None):
+def procAdminCmd(e=None):
     import re
 
     cmd = None
@@ -271,7 +283,10 @@ def initDir(d=None, dirowner=0, dirgroup=0, dirmode=0000):
             return False
     return True
 
-# Admin exception for adminMail() function
+# Admin exception for procAdminCmd() function
+# I really only wanted the main() execution to proceed so 
+# I used an exception for this. A more dynamic return value
+# could have worked too. 
 class AdminError(Exception):
     def __init__(self, errstr):
         self.errstr = errstr
