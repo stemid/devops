@@ -19,7 +19,7 @@ ADMINS = [
 WORKING_DIR = '.'
 
 # Logfile
-LOG_FILE = 'spamutbildning.log'
+LOG_FILE = 'spamutbildning.log' # Path must exist
 LOG_MAX_BYTES = 20971520 # 20M default
 LOG_MAX_COPIES = 5
 LOG_FORMAT = '%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s'
