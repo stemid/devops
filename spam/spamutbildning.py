@@ -255,7 +255,7 @@ def initDir(d=None, dirowner=0, dirgroup=0, dirmode=0000):
         # Try creating dir
         try:
             os.mkdir(d, dirmode)
-        except(OSError), e:
+        except(OSError, IOError), e:
             l.critical('Could not create directory: %s' % (d, str(e)))
             return False
         finally:
