@@ -34,7 +34,7 @@ l.addHandler(h)
 l.setLevel(logging.DEBUG)
 
 def main(f=None):
-    if f not None:
+    if f is not None:
         fObject = f
     else:
         fObject = sys.stdin
