@@ -16,7 +16,8 @@ ADMINS = [
 ]
 
 # Working dir must be writable by mail user and/or group
-WORKING_DIR = '.'
+# By default it's the same dir as the script is in
+WORKING_DIR = os.path.dirname(__file__)
 
 # Logfile
 LOG_FILE = '/var/log/spamutbildning.log' # Path must exist
