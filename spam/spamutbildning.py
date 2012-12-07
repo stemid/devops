@@ -59,8 +59,8 @@ def main(f=None):
                                                       inMail.get('subject')))
 
     # First find out if it's a command from an admin, and act on that.
-    if (inMail.get('Subject').startswith('!DELETE ') or
-        inMail.get('Subject').startswith('!CONFIRM ')):
+    if (inMail.get('Subject').startswith('!HAM ') or
+        inMail.get('Subject').startswith('!SPAM ')):
         l.debug('Found admin command in subject: %s' % inMail.get('Subject'))
         try:
             if adminMail(inMail):

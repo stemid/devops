@@ -50,10 +50,13 @@ Please view attachment for analysis.
 
 Take action by replying to this message with the following subject:
 
-!CONFIRM {tmpmailID}
-!DELETE {tmpmailID}
+!SPAM {tmpmailID}
+!HAM {tmpmailID}
 
 To confirm, or delete, the mail. 
+
+SPAM = Confirm
+HAM  = Is not spam, delete!
 
 Explanation of the attachments
 ============
