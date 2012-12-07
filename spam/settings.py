@@ -1,5 +1,7 @@
 # Configuration for spamutbildning.py
 
+import os
+
 # Name of this mail system
 SYSTEM_NAME = 'My system'
 SYSTEM_FROM = 'mysystem@system.tld'
