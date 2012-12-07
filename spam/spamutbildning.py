@@ -68,8 +68,8 @@ def main(f=None):
         except(AdminError), e:
             l.critical('Caught administrative exception: %s' % str(e))
             return False
-        finally:
-            l.debug('Admin command did not pan out, proceeding')
+        
+        l.debug('Admin command did not pan out, proceeding')
 
     # If it's not multipart at this point, simply give up.
     # Admins are allowed to send non-multipart commands. 
