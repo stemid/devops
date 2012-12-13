@@ -70,7 +70,11 @@ do_jboss_status()
 do_start_background()
 {
 	# Is jboss already running?
-	do_jboss_status && exit $?
+	do_jboss_status
+	RETVAL=$?
+	if [ $RETVAL == 0 ]; then
+		return 0
+	fi
 
 	# Return
 	#   0 if daemon has been started
@@ -81,6 +85,10 @@ do_start_background()
 	start-stop-daemon --start --make-pidfile --background --quiet --pidfile $PIDFILE --startas $DAEMON -- \
 		$DAEMON_ARGS >/dev/null 2>&1 \
 		|| return 2
+
+	while ! do_jboss_status; do
+		sleep 2
+	done
 }
 
 do_start_foreground()
@@ -129,6 +137,12 @@ do_safe_stop()
 	JBOSS_BOOT_CLASSPATH="$JBOSS_HOME/bin/shutdown.jar:$JBOSS_HOME/client/jbossall-client.jar"
 	exec "$DAEMON" -classpath $JBOSS_BOOT_CLASSPATH org.jboss.Shutdown --host=$JBOSS_HOST --port=$JBOSS_CLIENT_PORT -S
 	RETVAL=$?
+
+	# Wait and see if it has exited
+	while do_jboss_status; do
+		sleep 2
+	done
+
 	rm -f $PIDFILE
 	return "$RETVAL"
 }
