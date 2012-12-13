@@ -1,5 +1,8 @@
 # Must configure this before attempting science!
 
+# This is for the do_jboss_status function
+#STATUS_TIMEOUT=10
+
 #JAVA_HOME=/java
 #JAVA_OPTS="-Xms512m -Xmx1024m -XX:MaxPermSize=256m -Dorg.jboss.resolver.warning=true"
 #JBOSS_HOME=/tools/jboss
@@ -12,6 +15,9 @@
 # that issues the org.jboss.Shutdown command to Jboss. 
 #JBOSS_HOST=
 #JBOSS_CLIENT_PORT=
+#
+# For monitoring
+#JBOSS_SERVER_PORT=
 
 # Enable -server for OpenJDK and Hotspot
 #JAVA_OPTS="-server $JAVA_OPTS"
