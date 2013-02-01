@@ -1,6 +1,0 @@
-2013-02-01 10:02:06,579 spamutbildning.py[2133] INFO: Directory does not exist or is unreadable: /Users/nocturnal/Development/devops/spam/tmp
-2013-02-01 10:02:06,579 spamutbildning.py[2133] INFO: Directory does not exist or is unreadable: /Users/nocturnal/Development/devops/spam/spam
-2013-02-01 10:02:11,383 spamutbildning.py[2133] INFO: Received email: from[None], subject[None]
-2013-02-01 10:03:35,080 spamutbildning.py[2135] INFO: Received email: from[None], subject[None]
-2013-02-01 10:03:42,512 spamutbildning.py[2136] INFO: Received email: from[None], subject[None]
-2013-02-01 10:04:04,441 spamutbildning.py[2138] INFO: Received email: from[None], subject[None]
