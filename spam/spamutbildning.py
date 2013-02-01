@@ -48,6 +48,10 @@ def main(f=None):
         l.critical('Failed to init working dir: %s' % settings.SPAM_DIR)
         return False
 
+    if initDir(settings.HAM_DIR, PROC_EUID, PROC_EGID, 0750) is False:
+        l.critical('Failed to init working dir: %s' % settings.HAM_DIR)
+        return False
+
     # Read email from stdin
     try:
         inMail = Parser().parse(fObject)
