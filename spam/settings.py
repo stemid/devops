@@ -1,6 +1,11 @@
 # Configuration for spamutbildning.py
 
-import os
+from os.path import join, abspath, dirname
+
+# Helpful functions for relative paths
+here = lambda *x: join(abspath(dirname(__file__)), *x)
+WORKING_ROOT = here('.')
+root = lambda *x: join(abspath(WORKING_ROOT), *x)
 
 # Name of this mail system
 SYSTEM_NAME = 'My system'
@@ -17,23 +22,22 @@ ADMINS = [
     'admin@domain.tld',
 ]
 
-# Working dir must be writable by mail user and/or group
-# By default it's the same dir as the script is in
-WORKING_DIR = os.path.dirname(__file__)
-
 # Logfile
-LOG_FILE = '/var/log/spamutbildning.log' # Path must exist
+LOG_DIR = root('logs')
+LOG_FILE = '%s/spamutbildning.log' % LOG_DIR # Path must exist
 LOG_MAX_BYTES = 20971520 # 20M default
 LOG_MAX_COPIES = 5
 LOG_FORMAT = '%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s'
 
 # These will be automagically created if they do not exist
-TMP_DIR = '{pwd}/tmp'.format(pwd=WORKING_DIR)
-CONFIRMED_DIR = '{pwd}/spam'.format(pwd=WORKING_DIR)
+TMP_DIR = root('tmp')
+SPAM_DIR = root('spam')
+HAM_DIR = root('ham')
 
 # Go into filenames of queued mail 
 TMP_PREFIX = 'tmpmail'
 SPAM_PREFIX = 'spam'
+HAM_PREFIX = 'ham'
 
 # These email formats are counted, the rest is discarded
 # because sa-learn does not need to learn binary attachments. 

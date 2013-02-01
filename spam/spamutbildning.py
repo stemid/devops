@@ -44,8 +44,8 @@ def main(f=None):
         l.critical('Failed to init working dir: %s' % settings.TMP_DIR)
         return False
 
-    if initDir(settings.CONFIRMED_DIR, PROC_EUID, PROC_EGID, 0750) is False:
-        l.critical('Failed to init working dir: %s' % settings.CONFIRMED_DIR)
+    if initDir(settings.SPAM_DIR, PROC_EUID, PROC_EGID, 0750) is False:
+        l.critical('Failed to init working dir: %s' % settings.SPAM_DIR)
         return False
 
     # Read email from stdin
@@ -222,36 +222,43 @@ def procAdminCmd(e=None):
                     arg
                 ), 
                 '%s/%s%s' % (
-                    settings.CONFIRMED_DIR, 
+                    settings.SPAM_DIR, 
                     settings.SPAM_PREFIX,
                     arg
                 )
             )
-            l.info('Confirmed spam file: %s/%s%s' % (
-                settings.CONFIRMED_DIR,
+            l.info('Confirmed spam: %s/%s%s' % (
+                settings.SPAM_DIR,
                 settings.SPAM_PREFIX,
                 arg
             ))
             return True
         except(OSError), e:
-            raise AdminError('Move mail: %s' % arg)
+            raise AdminError('Move file: %s: %s' % (arg, str(e)))
             return False
 
     if cmd == 'HAM':
         try:
-            os.remove('%s/%s%s' % (
-                settings.TMP_DIR, 
-                settings.TMP_PREFIX,
-                arg
-            ))
-            l.info('Deleting ham file: %s/%s%s' % (
+            os.rename(
+                '%s/%s%s' % (
+                    settings.TMP_DIR, 
+                    settings.TMP_PREFIX,
+                    arg
+                ),
+                '%s/%s%s' % (
+                    settings.HAM_DIR,
+                    settings.HAM_PREFIX,
+                    arg
+                )
+            )
+            l.info('Confirmed ham: %s/%s%s' % (
                 settings.TMP_DIR,
                 settings.TMP_PREFIX,
                 arg
             ))
             return True
         except(OSError), e:
-            raise AdminError('Delete mail: %s: %s' % (arg, str(e)))
+            raise AdminError('Move file: %s: %s' % (arg, str(e)))
             return False
 
     # Return false and proceed with execution by default
