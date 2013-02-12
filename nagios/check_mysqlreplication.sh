@@ -98,7 +98,7 @@ newDBTimestamp=$(mysql -h"$mysqlHost" $mysqlArgs -e "select unix_timestamp(lastc
 # Wait for slow replication
 sleep $sleepTimeout
 
-slaveDBTimestamp=$(mysql -h"$mysqlHost" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;")
+slaveDBTimestamp=$(mysql -h"$mysqlSlave" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;")
 
 if [ "$newDBTimestamp" = "$slaveDBTimestamp" ]; then
 	echo "Replication state OK - Replication data returned from standby matched data entered into master."
