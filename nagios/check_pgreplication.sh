@@ -17,7 +17,7 @@ print_usage() {
 }
 
 # At least 8 arguments expected
-if [[ $# -lt 8 ]]; then
+if [ $# -lt 8 ]; then
 	print_usage
 	exit $ST_UK
 fi
@@ -73,11 +73,9 @@ export PGDATABASE="$pgDatabase"
 # Check if there is a timestamp already, if there is then UPDATE, if not then INSERT
 rows=$(psql -h "$PGHOSTADDRESS" -R, -A -w -q -c "SELECT timestamp FROM replication_testing;" | cut -d, -f2 | tr -d '()')
 
-if [[ "$rows" = "0 rows" ]]; then
-	psql -h "$PGHOSTADDRESS" -w -q -c "INSERT INTO replication_testing (timestamp) VALUES ($currentTimestamp)"
-else 
-	psql -h "$PGHOSTADDRESS" -w -q -c "UPDATE replication_testing SET timestamp=$currentTimestamp;"
-fi
+test "$rows" = "0 rows" && \
+	psql -h "$PGHOSTADDRESS" -w -q -c "INSERT INTO replication_testing (timestamp) VALUES ($currentTimestamp)" || \
+		psql -h "$PGHOSTADDRESS" -w -q -c "UPDATE replication_testing SET timestamp=$currentTimestamp;"
 
 # Wait n seconds to allow for slow replication. 
 # Most of the times the replication is instant between the two servers I tested but it might not always be that way. 
