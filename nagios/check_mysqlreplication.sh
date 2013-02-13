@@ -9,7 +9,7 @@
 # With this method I ensure that the script always runs 
 # by nrpe on the mysql master. 
 # 
-# create table replication_test (
+# create table replicationtest (
 #  "lastcheck" timestamp not null default current_timestamp on update current_timestamp
 # );
 
