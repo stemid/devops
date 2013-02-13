@@ -13,15 +13,17 @@
 #  "lastcheck" timestamp not null default current_timestamp on update current_timestamp
 # );
 
-# Mysql should listen on all interfaces
+# Set static configuration below
+# Mysql must listen on at least one interface
 mysqlHost=127.0.0.1
 mysqlPort=3306
 mysqlUser=root
 mysqlPass=password
 mysqlDB=nagios_test
-mysqlTable=replication_test
+mysqlTable=replicationtest
 mysqlSlave=10.0.0.1
 
+# Connect timeout, and replication timeout
 timeout=30
 sleepTimeout=5
 
@@ -35,6 +37,13 @@ print_usage() {
 	echo "Usage: $0 -H <MySQLHost> -U <MySQLUser> -P <MySQLPassword> -p <MySQLPort> -D <MySQLDB> -S <MySQLSlave> [-h]" 1>&2
 }
 
+# Must have at least 12 arguments
+if [ $# -lt 12 ]; then
+	print_usage
+	exit $ST_UK
+fi
+
+# Loop through arguments in a crude way
 while test -n "$1"; do
 	case "$1" in
 		--help)
@@ -80,26 +89,32 @@ while test -n "$1"; do
 	esac
 done
 
+# Build argument string without host arg and SQL command
 mysqlArgs="-sNB --connect_timeout=$timeout -u$mysqlUser -p$mysqlPass -D$mysqlDB"
 
-# Update or create the current timestamp
+# Check the old timestamp, if any
 oldDBTimestamp=$(mysql -h"$mysqlHost" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;" >/dev/null 2>&1)
 
+# Good opportunity to throw error if connection fails
 if [ $? -ne 0 ]; then
 	echo "Critical: Could not connect to database"
 	exit $ST_CR
 fi
 
+# Create or update the timestamp
 test -z "$oldDBTimestamp" && mysql -h"$mysqlHost" $mysqlArgs -e "insert into $mysqlTable (lastcheck) values (null);" || \
 	mysql -h"$mysqlHost" $mysqlArgs -e "update $mysqlTable set (lastcheck=null);"
 
+# Get the new timestamp
 newDBTimestamp=$(mysql -h"$mysqlHost" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;")
 
 # Wait for slow replication
 sleep $sleepTimeout
 
+# Get the slave timestamp
 slaveDBTimestamp=$(mysql -h"$mysqlSlave" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;")
 
+# Compare the two
 if [ "$newDBTimestamp" = "$slaveDBTimestamp" ]; then
 	echo "Replication state OK - Replication data returned from standby matched data entered into master."
 	exit $ST_OK
