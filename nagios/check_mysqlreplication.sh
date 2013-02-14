@@ -25,7 +25,7 @@ mysqlSlave=10.0.0.1
 
 # Connect timeout, and replication timeout
 timeout=30
-sleepTimeout=5
+sleepTimeout=2
 
 # Nagios exit codes
 ST_OK=0
@@ -93,7 +93,7 @@ done
 mysqlArgs="-P$mysqlPort -sNB --connect_timeout=$timeout -u$mysqlUser -p$mysqlPass -D$mysqlDB"
 
 # Check the old timestamp, if any
-oldDBTimestamp=$(mysql -h"$mysqlHost" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;" >/dev/null 2>&1)
+oldDBTimestamp=$(mysql -h"$mysqlHost" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable order by lastcheck desc limit 1;" >/dev/null 2>&1)
 
 # Good opportunity to throw error if connection fails
 if [ $? -ne 0 ]; then
@@ -103,7 +103,7 @@ fi
 
 # Create or update the timestamp
 test -z "$oldDBTimestamp" && mysql -h"$mysqlHost" $mysqlArgs -e "insert into $mysqlTable (lastcheck) values (null);" || \
-	mysql -h"$mysqlHost" $mysqlArgs -e "update $mysqlTable set (lastcheck=null);"
+	mysql -h"$mysqlHost" $mysqlArgs -e "update $mysqlTable set lastcheck=null;"
 
 # Get the new timestamp
 newDBTimestamp=$(mysql -h"$mysqlHost" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;")
