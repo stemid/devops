@@ -62,7 +62,7 @@ Take action by replying to this message with the following subject:
 To confirm, or delete, the mail. 
 
 SPAM = Confirm
-HAM  = Is not spam, delete!
+HAM  = Is not spam
 
 Explanation of the attachments
 ============
