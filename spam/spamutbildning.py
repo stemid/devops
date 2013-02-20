@@ -64,7 +64,8 @@ def main(f=None):
 
     # First find out if it's a command from an admin, and act on that.
     if (inMail.get('Subject').startswith('!HAM ') or
-        inMail.get('Subject').startswith('!SPAM ')):
+        inMail.get('Subject').startswith('!SPAM ') or
+        inMail.get('Subject').startswith('!DELETE ')):
         l.debug('Found admin command in subject: %s' % inMail.get('Subject'))
         try:
             if procAdminCmd(inMail):
@@ -263,6 +264,23 @@ def procAdminCmd(e=None):
             return True
         except(OSError), e:
             raise AdminError('Move file: %s: %s' % (arg, str(e)))
+            return False
+
+    if cmd == 'DELETE':
+        try:
+            os.remove('%s/%s%s' % (
+                settings.TMP_DIR,
+                settings.TMP_PREFIX,
+                arg
+            ))
+            l.info('Deleting file: %s/%s%s' % (
+                settings.TMP_DIR,
+                settings.TMP_PREFIX,
+                arg
+            ))
+            return True
+        except(OSError), e:
+            raise AdminError('Delete file: %s: %s' % (arg, str(e)))
             return False
 
     # Return false and proceed with execution by default

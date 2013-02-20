@@ -58,18 +58,18 @@ Take action by replying to this message with the following subject:
 
 !SPAM {tmpmailID}
 !HAM {tmpmailID}
+!DELETE {tmpmailID}
 
 To confirm, or delete, the mail. 
 
 SPAM = Confirm
 HAM  = Is not spam
+DELETE = Delete
 
 Explanation of the attachments
 ============
 
-The first attached file will be the sender who contacted Spamutbildning. 
-
-All subsequent attachments are original attachments in one of the following
+All attachments are original attachments in one of the following
 formats:
     {attachmentFormats}
 
