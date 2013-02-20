@@ -221,7 +221,7 @@ def procAdminCmd(e=None):
     if senderEmail.lower() in settings.ADMINS:
         # Extract command from subject
         try:
-            m = re.search('!(SPAM|HAM)\s+([A-Za-z0-9_]+)', e.get('subject'))
+            m = re.search('!(SPAM|HAM|DELETE)\s+([A-Za-z0-9_]+)', e.get('subject'))
             cmd = m.group(1)
             arg = m.group(2)
             l.debug('Extracted cmd[%s], arg[%s]' % (cmd, arg))

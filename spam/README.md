@@ -36,3 +36,4 @@ TODO
 
   * Add logging handler for sending critical errors to admins
   * http://docs.python.org/2/library/logging.handlers.html#logging.handlers.SMTPHandler
+	* Make admin commands more dynamic in a list or something
