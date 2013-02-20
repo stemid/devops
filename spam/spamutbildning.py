@@ -3,27 +3,23 @@
 # Configuration settings in settings.py
 # By Stefan.Midjich@cygate.se 2012
 
-# Import configuration
-import settings
-
-import sys
+# Import python libs
+from sys import stdin, exit
 import os
-import tempfile
+from tempfile import mkstemp
 import email
 from email.parser import Parser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
-import logging
-from logging import handlers
+from logging import handlers, Formatter, getLogger
 
-# Get effective user permissions
-PROC_EUID = os.geteuid()
-PROC_EGID = os.getegid()
+# Import configuration
+import settings
 
 # Setup logging
-formatter = logging.Formatter(settings.LOG_FORMAT)
-l = logging.getLogger(__name__)
+formatter = Formatter(settings.LOG_FORMAT)
+l = getLogger(__name__)
 h = handlers.RotatingFileHandler(
     settings.LOG_FILE, 
     maxBytes=settings.LOG_MAX_BYTES, 
@@ -34,23 +30,40 @@ l.addHandler(h)
 l.setLevel(logging.DEBUG)
 
 def main(f=None):
+    # Just a little trick for debugging from REPL
     if f is not None:
         fObject = f
     else:
-        fObject = sys.stdin
+        fObject = stdin
 
     # Initialize our working environment
-    if initDir(settings.TMP_DIR, PROC_EUID, PROC_EGID, 0750) is False:
+    if initDir(
+        settings.TMP_DIR, 
+        settings.PROC_EUID, 
+        settings.PROC_EGID, 
+        0750
+    ) is False:
         l.critical('Failed to init working dir: %s' % settings.TMP_DIR)
         return False
 
-    if initDir(settings.SPAM_DIR, PROC_EUID, PROC_EGID, 0750) is False:
+    if initDir(
+        settings.SPAM_DIR, 
+        settings.PROC_EUID, 
+        settings.PROC_EGID, 
+        0750
+    ) is False:
         l.critical('Failed to init working dir: %s' % settings.SPAM_DIR)
         return False
 
-    if initDir(settings.HAM_DIR, PROC_EUID, PROC_EGID, 0750) is False:
+    if initDir(
+        settings.HAM_DIR, 
+        settings.PROC_EUID, 
+        settings.PROC_EGID, 
+        0750
+    ) is False:
         l.critical('Failed to init working dir: %s' % settings.HAM_DIR)
         return False
+    # Finished setting up working directories
 
     # Read email from stdin
     try:
@@ -63,6 +76,7 @@ def main(f=None):
                                                       inMail.get('subject')))
 
     # First find out if it's a command from an admin, and act on that.
+    # TODO: Dynamic command definitions
     if (inMail.get('Subject').startswith('!HAM ') or
         inMail.get('Subject').startswith('!SPAM ') or
         inMail.get('Subject').startswith('!DELETE ')):
@@ -108,7 +122,7 @@ def main(f=None):
 def sendAdminMail(rcpts=None, payload=None):
     # Create temporary file for incomming email
     try:
-        emailFile = tempfile.mkstemp(
+        emailFile = mkstemp(
             dir=settings.TMP_DIR, 
             prefix=settings.TMP_PREFIX
         )
@@ -325,5 +339,5 @@ class AdminError(Exception):
 
 if __name__ == '__main__':
     if main():
-        sys.exit(0)
-    sys.exit(1)
+        exit(0)
+    exit(1)

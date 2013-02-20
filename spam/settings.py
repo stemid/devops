@@ -1,5 +1,6 @@
 # Configuration for spamutbildning.py
 
+from os import geteuid, getegid
 from os.path import join, abspath, dirname
 
 # Helpful functions for relative paths
@@ -95,3 +96,6 @@ of them would be a good idea.
 
 / Spamutbildning
 """
+
+PROC_EUID = geteuid()
+PROC_EGID = getegid()
