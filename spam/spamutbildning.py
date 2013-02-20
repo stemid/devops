@@ -12,7 +12,7 @@ from email.parser import Parser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
-from logging import handlers, Formatter, getLogger
+from logging import handlers, Formatter, getLogger, DEBUG, WARN, INFO
 
 # Import configuration
 import settings
@@ -27,7 +27,7 @@ h = handlers.RotatingFileHandler(
 )
 h.setFormatter(formatter)
 l.addHandler(h)
-l.setLevel(logging.DEBUG)
+l.setLevel(DEBUG)
 
 def main(f=None):
     # Just a little trick for debugging from REPL
