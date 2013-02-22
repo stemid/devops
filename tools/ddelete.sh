@@ -41,7 +41,7 @@ filename=$1
 fileModifiedDate=$(stat -t "$filename"|cut -d' ' -f13)
 
 if [ "$modifiedDate" -gt "$fileModifiedDate" ]; then
-	rm -f "$filename"
+	rm -rf "$filename"
 	exit 0
 fi
 
