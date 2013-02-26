@@ -8,6 +8,7 @@
 
 # Default last modified date for files
 modifiedDate=$(date -d '1 month ago' +'%s')
+onlyPrint=0
 
 print_usage() {
 	echo "Usage: $0 [-d <last modified date>] <filename>" 1>&2
@@ -18,8 +19,11 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-while getopts 'd:' opt; do
+while getopts 'pd:' opt; do
 	case $opt in
+		p)
+			onlyPrint=1
+			;;
 		d)
 			modifiedDate=$(date -d "$OPTARG" +'%s')
 			;;
@@ -39,6 +43,10 @@ fi
 
 filename=$1
 fileModifiedDate=$(stat -t "$filename"|cut -d' ' -f13)
+
+if [ $onlyPrint -eq 1 ]; then
+	echo "$filename: $fileModifiedDate"
+fi
 
 if [ "$modifiedDate" -gt "$fileModifiedDate" ]; then
 	rm -rf "$filename"
