@@ -14,23 +14,23 @@ AppURL = 'https://{AppHost}{AppPath}'.format(
     AppPath = AppPath,
 )
 
-import sys
+from sys import exit, argv, stderr
+from datetime import datetime
 import subprocess
 import httplib
 import urllib
-import datetime
 import traceback
 
 # Exit if no arguments provided
-if len(sys.argv[1:]) < 1:
-    print 'No arguments'
-    sys.exit(1)
+if len(argv[1:]) < 1:
+    print >>stderr, 'No arguments'
+    exit(1)
 
 # CMD to execute with arguments as a list
-cmd = sys.argv[1:]
+cmd = argv[1:]
 
 # Start timer for subprocess
-startTime = datetime.datetime.now()
+startTime = datetime.now()
 
 try:
     proc = subprocess.Popen(cmd)
@@ -44,7 +44,7 @@ except:
     err = traceback.format_exc()
 
 # Calculate runtime and format
-stopTime = datetime.datetime.now()
+stopTime = datetime.now()
 runTime = stopTime - startTime
 diff = divmod(runTime.days * 86400 + runTime.seconds, 60)
 fTime = '%d minutes and %d seconds' % diff
@@ -75,7 +75,7 @@ try:
     postConn.request('POST', AppPath, postData, postHeader)
     postResponse = postConn.getresponse()
 except(httplib.HTTPException), e:
-    print 'Could not send notification: %s' % str(e)
+    print >>stderr, 'Could not send notification: %s' % str(e)
 
 postConn.close()
-sys.exit(rc)
+exit(rc)
