@@ -114,6 +114,9 @@ sleep $sleepTimeout
 # Get the slave timestamp
 slaveDBTimestamp=$(mysql -h"$mysqlSlave" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;")
 
+# Clear the DB
+mysql -h"$mysqlHost" $mysqlArgs -e "delete from $mysqlTable;"
+
 # Compare the two
 if [ "$newDBTimestamp" = "$slaveDBTimestamp" ]; then
 	echo "Replication state OK - Replication data returned from standby matched data entered into master."
