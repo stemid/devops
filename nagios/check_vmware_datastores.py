@@ -6,14 +6,14 @@
 # This is the same configuration file as esxcli uses. 
 #
 # Example of vmware.cfg file:
-#   VU_PASSWORD=myPass2000
+#   VI_PASSWORD=myPass2000
 #   VI_SERVER=10.10.20.30
 #   VI_USERNAME=domain\svc_vmware_nagios
 #
 # vSphere CLI package on Linux normally installs dsbrowse.pl into 
 # /usr/lib/vmware-vcli/apps/host, adjust path below if required. 
 #
-# By Stefan Midjich
+# By Stefan Midjich 2013
 
 from __future__ import print_function
 
