@@ -22,8 +22,8 @@ import subprocess
 import argparse
 
 # Local configuration
-VI_CONFIG = '/usr/lib/nagios/plugins/vmware.cfg'
 DSBROWSE = '/usr/lib/vmware-vcli/apps/host/dsbrowse.pl'
+VI_CONFIG = '/usr/lib/nagios/plugins/vmware.cfg'
 
 # Nagios Exit codes
 EXIT_OK = 0
@@ -41,13 +41,13 @@ def main():
         '-c',
         '--config',
         default = VI_CONFIG,
-        help = 'VI_CONFIG configuration for vSphere CLI'
+        help = 'VI_CONFIG configuration for vSphere CLI (default: %s)' % VI_CONFIG
     )
 
     parser.add_argument(
         '-n',
         '--name',
-        help = 'Datastore name'
+        help = 'Datastore name (default: All)'
     )
 
     parser.add_argument(
@@ -55,7 +55,7 @@ def main():
         '--warning',
         type = float,
         default = 15.0,
-        help = 'Warning threshold in percent, of available space'
+        help = 'Warning threshold in percent, of available space (default: 15)'
     )
 
     parser.add_argument(
@@ -63,7 +63,7 @@ def main():
         '--critical',
         type = float,
         default = 10.0,
-        help = 'Critical threshold in percent, of available space'
+        help = 'Critical threshold in percent, of available space (default: 10)'
     )
 
     args = parser.parse_args()
