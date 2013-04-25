@@ -161,7 +161,7 @@ def main():
             ))
             return EXIT_WARNING
 
-    # All is OK, no threshold values reached.
+    # All is OK, no datastore reached threshold values.
     if args.name == datastores[0]['datastore_name']:
         print('OK: %s has %d available of %d GB total space' % (
             datastores[0]['datastore_name'],
