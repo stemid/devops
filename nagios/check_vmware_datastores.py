@@ -130,7 +130,7 @@ def main():
             # Subsequent calls to -1 will add to the last list item, 
             # dictionary. 
             datastores[-1]['available_space'] = float(
-                available_space.rstrip(' MGB')
+                available_space.rstrip(' GB')
             )
 
     # Sort the list alphabetically by datastore name. 
@@ -161,7 +161,15 @@ def main():
             ))
             return EXIT_WARNING
 
-    print('OK: All checked datastores OK')
+    # All is OK, no threshold values reached.
+    if args.name == datastores[0]['datastore_name']:
+        print('OK: %s has %d available of %d GB total space' % (
+            datastores[0]['datastore_name'],
+            datastores[0]['available_space'],
+            datastores[0]['maximum_capacity']
+        ))
+    else:
+        print('OK: All checked datastores OK')
     return EXIT_OK
 
 if __name__ == '__main__':
