@@ -17,7 +17,7 @@
 
 from __future__ import print_function
 
-from sys import stderr, exit
+from sys import exit
 
 # Local configuration
 DSBROWSE = '/usr/lib/vmware-vcli/apps/host/dsbrowse.pl'
@@ -62,7 +62,7 @@ def main(args):
     datastores = []
     for line in dsbrowse.stdout:
         if line.startswith('No Datastores Found'):
-            print('Error: No datastores found', file=stderr)
+            print('UNKNOWN: No datastores found')
             return EXIT_UNKNOWN
 
         # Get datastore name
@@ -110,7 +110,7 @@ def main(args):
         percent_used = 100 - percent_left
 
         if args.critical > percent_left:
-            print('Critical: Datastore %s has %d of %d GB available' % (
+            print('CRITICAL: Datastore %s has %d of %d GB available' % (
                 datastore['datastore_name'],
                 datastore['available_space'],
                 datastore['maximum_capacity']
@@ -118,7 +118,7 @@ def main(args):
             return EXIT_CRITICAL
 
         if args.warning > percent_left:
-            print('Warning: Datastore %s has %d of %d GB available' % (
+            print('WARNING: Datastore %s has %d of %d GB available' % (
                 datastore['datastore_name'],
                 datastore['available_space'],
                 datastore['maximum_capacity']
@@ -139,9 +139,9 @@ def main(args):
 # Handle command line arguments
 if __name__ == '__main__':
     try:
-        from optparse import OptionParser as ArgumentParser
-    except:
         from argparse import ArgumentParser
+    except:
+        from optparse import OptionParser as ArgumentParser
 
     # Init arguments
     parser = ArgumentParser(
@@ -149,9 +149,9 @@ if __name__ == '__main__':
     )
 
     try:
-        add_argument = parser.add_option
-    except:
         add_argument = parser.add_argument
+    except:
+        add_argument = parser.add_option
 
     add_argument(
         '-f',
@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
     try:
         (options, args) = parser.parse_args()
-    except:
+    except(TypeError):
         options = parser.parse_args()
 
     exit(main(options))
