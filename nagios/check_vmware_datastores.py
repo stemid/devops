@@ -18,8 +18,6 @@
 from __future__ import print_function
 
 from sys import stderr, exit
-import subprocess
-import argparse
 
 # Local configuration
 DSBROWSE = '/usr/lib/vmware-vcli/apps/host/dsbrowse.pl'
@@ -31,42 +29,8 @@ EXIT_WARNING = 1
 EXIT_CRITICAL = 2
 EXIT_UNKNOWN = 3
 
-def main():
-    # Init arguments
-    parser = argparse.ArgumentParser(
-        description = 'Nagios script to check datastore sizes'
-    )
-
-    parser.add_argument(
-        '-c',
-        '--config',
-        default = VI_CONFIG,
-        help = 'VI_CONFIG configuration for vSphere CLI (default: %s)' % VI_CONFIG
-    )
-
-    parser.add_argument(
-        '-n',
-        '--name',
-        help = 'Datastore name (default: All)'
-    )
-
-    parser.add_argument(
-        '-W',
-        '--warning',
-        type = float,
-        default = 15.0,
-        help = 'Warning threshold in percent, of available space (default: 15)'
-    )
-
-    parser.add_argument(
-        '-C',
-        '--critical',
-        type = float,
-        default = 10.0,
-        help = 'Critical threshold in percent, of available space (default: 10)'
-    )
-
-    args = parser.parse_args()
+def main(args):
+    import subprocess
 
     # Complete command to execute
     dsbrowse_cmd = [
@@ -172,5 +136,55 @@ def main():
         print('OK: All checked datastores OK')
     return EXIT_OK
 
+# Handle command line arguments
 if __name__ == '__main__':
-    exit(main())
+    try:
+        from optparse import OptionParser as ArgumentParser
+    except:
+        from argparse import ArgumentParser
+
+    # Init arguments
+    parser = ArgumentParser(
+        description = 'Nagios script to check datastore sizes'
+    )
+
+    try:
+        add_argument = parser.add_option
+    except:
+        add_argument = parser.add_argument
+
+    add_argument(
+        '-f',
+        '--config',
+        default = VI_CONFIG,
+        help = 'VI_CONFIG configuration for vSphere CLI (default: %s)' % VI_CONFIG
+    )
+
+    add_argument(
+        '-n',
+        '--name',
+        help = 'Datastore name (default: Check all datastores)'
+    )
+
+    add_argument(
+        '-w',
+        '--warning',
+        type = float,
+        default = 15.0,
+        help = 'Warning threshold in percent, of available space (default: 15)'
+    )
+
+    add_argument(
+        '-c',
+        '--critical',
+        type = float,
+        default = 10.0,
+        help = 'Critical threshold in percent, of available space (default: 10)'
+    )
+
+    try:
+        (options, args) = parser.parse_args()
+    except:
+        options = parser.parse_args()
+
+    exit(main(options))
