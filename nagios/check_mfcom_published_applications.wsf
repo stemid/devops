@@ -1,7 +1,7 @@
 <package>
   <job id="Applications">
     <comment>
-      Description: Nagios NSClient script to check for published applications. 
+      Description: Nagios NSClient script to check for published applications on a Citrix Presentation Server 4.5. 
       Author: Stefan Midjich (stefan.midjich@cygate.se), May 2013
       Usage: cscript //nologo check_mfcom_published_applications.wsf <Int(warning)> <Int(critical)> ["Application Name"]
       Must run with a Citrix Administrator user. 
