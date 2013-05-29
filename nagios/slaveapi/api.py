@@ -1,5 +1,5 @@
 # coding: utf-8
-import web.py
+import web
 import json
 
 # Initialize settings class
