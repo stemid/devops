@@ -1,0 +1,98 @@
+<package>
+  <job id="Applications">
+    <comment>
+      Description: Nagios NSClient script to check for published applications on a Citrix Presentation Server 4.5. 
+      Author: Stefan Midjich (stefan.midjich@cygate.se), May 2013
+      Usage: cscript //nologo check_mfcom_published_applications.wsf <Int(warning)> <Int(critical)> ["Application Name"]
+      Must run with a Citrix Administrator user. 
+
+      TODO: Add support for custom root application folder, and perhaps recursive folder searching. 
+    </comment>
+    <reference object="MetaFrameCOM.MetaFrameFarm"/>
+    <script language="VBScript">
+      Const OK = 0
+      Const Warning = 1
+      Const Critical = 2
+      Const Unknown = 3
+
+      Dim Application, Farm, minWarning, minCritical
+
+      Function Usage()
+        Wscript.Echo "Usage: cscript //nologo " & Wscript.ScriptName & "<Int(warning)> <Int(critical)> [" & chr(34) & "Application Name" & chr(34) & "]"
+      End Function
+
+      ' Check command line arguments
+      if Wscript.Arguments.Count < 2 Then
+        Call Usage()
+        Wscript.Quit (Unknown)
+      Else
+        minWarning = Int(Wscript.arguments(0))
+        minCritical = Int(Wscript.arguments(1))
+      End If
+
+      ' Check minimum values
+      if minWarning < minCritical Then
+        Wscript.Echo "Unknown: Warning value should be higher than Critical value"
+        Wscript.Quit (Unknown)
+      End If
+
+      ' Have application name to search for?
+      if Wscript.Arguments.Count = 3 Then
+        Application = Wscript.arguments(2)
+      Else
+        Application = ""
+      End If
+
+      ' Create MetaFrameFarm object
+      Set Farm = CreateObject("MetaFrameCOM.MetaFrameFarm")
+      if Err.Number <> 0 Then
+        Wscript.Echo "Critical: Can't create MetaFrameFarm object: " & Err.Number & ": " & Err.Description
+        Wscript.Quit (Critical)
+      End If
+
+      ' Init Farm object
+      Farm.Initialize(MetaFrameWinFarmObject)
+      if Err.Number <> 0 Then
+        Wscript.Echo "Critical: Can't initialize MetaFrameFarm object: " & Err.Number & ": " & Err.Description
+        Wscript.Quit (Critical)
+      End If
+
+      ' Check if executing user is Citrix Admin
+      if Farm.WinFarmObject.IsCitrixAdministrator = 0 Then
+        Wscript.Echo "Critical: You must execute script as Citrix Administrator"
+        Wscript.Quit (Critical)
+      End If
+
+      ' For now always check from root app folder
+      Dim rootApplications
+      Set rootApplications = Farm.GetRootFolder(MetaFrameAppFolder)
+
+      ' Loop through all apps in folder
+      Dim appFolder, appCounter
+      appCounter = 0
+      Set appFolder = rootApplications.AppFolder
+      For Each app in appFolder.Applications
+        app.LoadData(0)
+        if Application = "" Then
+          appCounter = appCounter + 1
+        Else
+          if Application = app.AppName Then
+            appCounter = appCounter + 1
+          End If
+        End If
+      Next
+
+      if appCounter < minCritical Then
+        Wscript.Echo "Critical: Found " & appCounter & " published applications"
+        Wscript.Quit (Critical)
+      End If
+      if appCounter < minWarning Then
+        Wscript.Echo "Warning: Found " & appCounter & " published applications"
+        Wscript.Quit (Warning)
+      End If
+
+      Wscript.Echo "OK: Found " & appCounter & " published applications"
+      Wscript.Quit (OK)
+    </script>
+  </job>
+</package>

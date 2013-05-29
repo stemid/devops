@@ -90,7 +90,7 @@ while test -n "$1"; do
 done
 
 # Build argument string without host arg and SQL command
-mysqlArgs="-P$mysqlPort -sNB --connect_timeout=$timeout -u$mysqlUser -p$mysqlPass -D$mysqlDB"
+mysqlArgs="-P$mysqlPort -sNB --connect-timeout=$timeout -u$mysqlUser -p$mysqlPass -D$mysqlDB"
 
 # Check the old timestamp, if any
 oldDBTimestamp=$(mysql -h"$mysqlHost" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable order by lastcheck desc limit 1;" >/dev/null 2>&1)
@@ -113,6 +113,9 @@ sleep $sleepTimeout
 
 # Get the slave timestamp
 slaveDBTimestamp=$(mysql -h"$mysqlSlave" $mysqlArgs -e "select unix_timestamp(lastcheck) from $mysqlTable;")
+
+# Clear the DB
+mysql -h"$mysqlHost" $mysqlArgs -e "delete from $mysqlTable;"
 
 # Compare the two
 if [ "$newDBTimestamp" = "$slaveDBTimestamp" ]; then
