@@ -3,20 +3,21 @@ config = {
     'debug': False,
     'nagios_user1': '/usr/lib/nagios/plugins',
     'user_api_keys': (
-        'random_key-stuff',
+        'ZF9Cl0vQzY0Pn1hXl4hYPg',
     ),
     'notification_commands': [
         'sms',
         'email',
+        'oplog',
     ],
-    'email_from': 'nagios@nagios.local',
+    'email_from': 'nagios@rskp003.skane.se',
     'email_smarthost': 'localhost',
     'sms_command': '/usr/lib/nagios/plugins/notify_by_sms_backend',
     'oplog_dbhost': 'localhost',
     'oplog_dbport': 5432,
-    'oplog_dbname': '',
-    'oplog_dbuser': '',
-    'oplog_dbpass': '',
+    'oplog_dbname': 'oplog',
+    'oplog_dbuser': 'www-data',
+    'oplog_dbpass': '38RxBkMOC37p0iGXZtsD',
 }
 
 from os.path import join, abspath, dirname
@@ -43,6 +44,21 @@ class Settings:
         settings = filter(config.keys(), '*_path')
         for setting in settings:
             config[setting] = root(config[setting])
+
+    # Wrapper for web.py debug mode, just for no reason at all
+    def set_debug(self, status=None):
+        from web import config as webconfig
+
+        if status is True:
+            webconfig.debug = True
+        elif status is False:
+            webconfig.debug = False
+        else:
+            if webconfig.debug is True:
+                webconfig.debug = False
+            else:
+                webconfig.debug = True
+        self.config['debug'] = webconfig.debug
 
     @property
     def oplog_dbhost(self):
