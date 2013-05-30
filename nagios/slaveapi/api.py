@@ -86,6 +86,10 @@ class Notify:
             )
 
             if not query.recipient or not query.subject:
+                print json.dumps({
+                    'recipient': query.recipient,
+                    'subject': query,subject,
+                })
                 raise web.internalerror()
 
             try:
@@ -95,7 +99,9 @@ class Notify:
                     msg
                 )
             except Exception, e:
-                print str(e)
+                print json.dumps({
+                    'error': str(e),
+                })
                 raise web.internalerror()
             finally:
                 return web.ok()
