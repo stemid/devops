@@ -17,9 +17,10 @@ class Notify:
     def _notify_by_email(self, rcpt, subject, message):
         from smtplib import SMTP
 
-        msg = ("From: %s\r\nTo: %s\r\n\r\n%s" % (
+        msg = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s" % (
             settings['email_from'],
             rcpt,
+            subject,
             message
         ))
 
