@@ -35,8 +35,7 @@ class Notify:
         import sh
 
         notify_by_sms = sh.Command(settings['sms_command'])
-        print pager, notification, hostname, message
-        #notify_by_sms(pager, notification, hostname, _in=message)
+        notify_by_sms('+%s' % pager, notification, hostname, _in=message)
 
     def _notify_by_oplog(self, **kw):
         import psycopg2
@@ -125,7 +124,7 @@ class Notify:
 
             try:
                 self._notify_by_sms(
-                    query.contactpager, 
+                    query.contactpager.lstrip(' +'), 
                     query.notification,
                     query.hostname,
                     query.msg
