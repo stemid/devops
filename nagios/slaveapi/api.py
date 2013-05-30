@@ -35,7 +35,6 @@ class Notify:
         import sh
 
         notify_by_sms = sh.Command(settings['sms_command'])
-        print type(notify_by_sms)
         notify_by_sms(pager, notification, hostname, _in=message)
 
     def _notify_by_oplog(self, **kw):
@@ -113,7 +112,7 @@ class Notify:
                 contactpager = None,
                 notification = None,
                 hostname = '',
-                msg = ''
+                msg = 'Unknown message'
             )
 
             if not query.contactpager or not query.notification:
