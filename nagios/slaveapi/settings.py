@@ -3,21 +3,20 @@ config = {
     'debug': False,
     'nagios_user1': '/usr/lib/nagios/plugins',
     'user_api_keys': (
-        'ZF9Cl0vQzY0Pn1hXl4hYPg',
+        '',
     ),
     'notification_commands': [
         'sms',
         'email',
-        'oplog',
     ],
-    'email_from': 'nagios@rskp003.skane.se',
+    'email_from': 'nagios@nagios.local',
     'email_smarthost': 'localhost',
-    'sms_command': '/usr/lib/nagios/plugins/notify_by_sms_backend',
+    'sms_command': '',
     'oplog_dbhost': 'localhost',
     'oplog_dbport': 5432,
-    'oplog_dbname': 'oplog',
-    'oplog_dbuser': 'www-data',
-    'oplog_dbpass': '38RxBkMOC37p0iGXZtsD',
+    'oplog_dbname': '',
+    'oplog_dbuser': '',
+    'oplog_dbpass': '',
 }
 
 from os.path import join, abspath, dirname
