@@ -88,7 +88,7 @@ class Notify:
             if not query.recipient or not query.subject:
                 print json.dumps({
                     'recipient': query.recipient,
-                    'subject': query,subject,
+                    'subject': query.subject,
                 })
                 raise web.internalerror()
 
