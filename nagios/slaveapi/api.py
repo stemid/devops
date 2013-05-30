@@ -34,9 +34,9 @@ class Notify:
     def _notify_by_sms(self, pager, notification, hostname, message):
         import sh
 
+        print type(notify_by_sms)
         notify_by_sms = sh.Command(settings['sms_command'])
         notify_by_sms(pager, notification, hostname, _in=message)
-        print type(notify_by_sms)
 
     def _notify_by_oplog(self, **kw):
         import psycopg2
