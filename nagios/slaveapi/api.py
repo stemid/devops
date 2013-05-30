@@ -94,7 +94,8 @@ class Notify:
                     query.subject, query.
                     msg
                 )
-            except:
+            except Exception, e:
+                print str(e)
                 raise web.internalerror()
             finally:
                 return web.ok()
