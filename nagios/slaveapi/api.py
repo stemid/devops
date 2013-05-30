@@ -117,6 +117,10 @@ class Notify:
             )
 
             if not query.contactpager or not query.notification:
+                print json.dumps({
+                    'contactpager': query.contactpager, 
+                    'notification': query.notification,
+                })
                 raise web.internalerror()
 
             try:
@@ -126,7 +130,10 @@ class Notify:
                     query.hostname,
                     query.msg
                 )
-            except:
+            except Exception, e:
+                print json.dumps({
+                    'error': str(e),
+                })
                 raise web.internalerror()
             finally:
                 return web.ok()
