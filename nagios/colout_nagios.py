@@ -7,7 +7,7 @@
 # By Stefan Midjich
 
 def theme():
-    # Solarized specific colors
+    # Solarized specific colors: http://ethanschoonover.com/solarized
     bright_red = '#d75f00'
     red = '#dc322f'
     yellow = '#b58900'
@@ -15,6 +15,8 @@ def theme():
     bright_white = '#ffffd7'
     white = '#e4e4e4'
     cyan = '#2aa198'
+    bright_black = '#1c1c1c'
+    orange = '#cb4b16'
 
     return [
         [ "(SERVICE ALERT\:) (.+)(;OK;HARD;)(.+)$", green ],
@@ -29,4 +31,5 @@ def theme():
         [ "(HOST ALERT\:) (.+)(;DOWN;SOFT;)(.+)$", yellow ],
         [ "(EXTERNAL COMMAND\:) (.+)$", white, "bold" ],
         [ "(Finished daemonizing.+)$", bright_white ],
+        [ "(Successfully shutdown.+)$", orange ],
     ]
