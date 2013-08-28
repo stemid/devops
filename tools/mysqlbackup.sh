@@ -3,6 +3,8 @@
 # * Databasens namn
 # * Databasens användare
 # * Användarens lösenord
+# Behöver följande PATH i crontab
+# PATH=$PATH:/usr/local/sbin:/usr/bin:/bin
 
 customerName=""
 mysqlUser=""
