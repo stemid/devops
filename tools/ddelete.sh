@@ -5,6 +5,7 @@
 # ddelete.sh -d '1 year ago' file.txt
 # ddelete.sh otherfile.xls
 # Default is '1 month old'
+# By Stefan Midjich
 
 # Default last modified date for files
 modifiedDate=$(date -d '1 month ago' +'%s')

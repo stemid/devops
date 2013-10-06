@@ -2,7 +2,9 @@
 # Use pushover.net to notify of 
 # long running commands finishing. 
 # Run as: pushme mysqlrepair -u root -p centstorage
+# By Stefan Midjich
 
+# Pushover.net configuration
 AppToken = 'your app token'
 UserToken = 'your user token'
 AppHost = 'api.pushover.net'

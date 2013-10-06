@@ -10,4 +10,4 @@ Sharing is caring.
 News
 ====
 
-The spam directory has been moved to its own repo here: https://github.com/swehack/spamutbildning
+The spam directory has been moved to its own repo here: https://github.com/stemid/spamutbildning
