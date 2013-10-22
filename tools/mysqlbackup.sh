@@ -40,7 +40,7 @@ if [[ ! -d "$backupsDir" ]]; then
 fi
 
 # Rensa gamla SQL dumpar
-for sqlDump in "$backupsDir"/${mysqlDB}-*.sql; do
+for sqlDump in "$backupsDir"/${mysqlDB}-*; do
   # Syntaxet av stat(1) kommandot skiljer sig 
   # på BSD och Mac OS Unix till exempel. 
   if [[ $(stat -c %Z "$sqlDump" >/dev/null 2>&1) -lt "$weekAgoStamp" ]]; then
