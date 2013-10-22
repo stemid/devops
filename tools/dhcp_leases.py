@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 # Count leases in an ISC DHCPd leases file.
+# 
+# Script depends on python module netaddr.
+#   Install it with pip install netaddr.
+# Script also depends on python 2.7 for argparse.
+#
 # This was written because dhcpstatus kept crashing with OOM errors on a 
 # 500M large leases file. All I required was to count the leases but more
 # info could be added into the matched_ips dictionary. 
+#
+# Run dhcp_leases.py -h for more info.
 #
 # By Stefan Midjich
 
