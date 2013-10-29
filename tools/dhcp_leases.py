@@ -17,60 +17,93 @@ from sys import exit
 import argparse
 from netaddr import IPNetwork
 
-arse = argparse.ArgumentParser(
-    description = 'Count leases in use for one subnet',
-    epilog = 'By Stefan Midjich'
-)
-
-arse.add_argument(
-    '-q', '--quiet',
-    action = 'store_true',
-    help = 'Only show number of addresses that match'
-)
-
-arse.add_argument(
-    '-f', '--filename',
-    metavar = '/var/lib/dhcp/dhcpd.leases',
-    type = argparse.FileType('r'),
-    help = 'Leases filename'
-)
-
-arse.add_argument(
-    'subnet',
-    metavar = '10.11.12.13/29',
-    help = 'Subnet or ip-address in a subnet'
-)
-
-args = arse.parse_args()
-
-try:
-    ip = IPNetwork(args.subnet)
-    range_ips = list(ip)
-except:
-    arse.print_usage()
-    exit(1)
-
-valid_ips = []
-for _ip in range_ips:
-    valid_ips.append(str(_ip))
-
-matched_ips = {}
-for line in args.filename:
-    if line.startswith('lease '):
-        (junk, current_ip, junk) = line.split(' ')
-        if current_ip in valid_ips:
-            try:
-                matched_ips[current_ip]['count'] += 1
-            except:
-                matched_ips[current_ip] = {
-                    'count': 1
-                }
-
-if args.quiet:
-    print len(matched_ips)
-else:
-    print "Found %d leases out of %d, for subnet %s" % (
-        len(matched_ips), 
-        len(valid_ips),
-        args.subnet
+def main():
+    arse = argparse.ArgumentParser(
+        description = 'Count leases in use for one subnet',
+        epilog = 'By Stefan Midjich'
     )
+
+    arse.add_argument(
+        '-q', '--quiet',
+        action = 'store_true',
+        help = 'Only show number of addresses that match'
+    )
+
+    arse.add_argument(
+        '-f', '--filename',
+        metavar = '/var/lib/dhcp/dhcpd.leases',
+        type = argparse.FileType('r'),
+        help = 'Leases filename'
+    )
+
+    arse.add_argument(
+        'subnet',
+        metavar = '10.11.12.13/29',
+        help = 'Subnet or ip-address in a subnet'
+    )
+
+    args = arse.parse_args()
+
+    try:
+        ip = IPNetwork(args.subnet)
+        range_ips = list(ip)
+    except:
+        arse.print_usage()
+        exit(1)
+
+    valid_ips = []
+    for _ip in range_ips:
+        valid_ips.append(str(_ip))
+
+    matches = count(args.filename, valid_ips)
+
+    if args.quiet:
+        print len(matches)
+    else:
+        print "Found %d leases out of %d, for subnet %s" % (
+            len(matches), 
+            len(valid_ips),
+            args.subnet
+        )
+
+def count(file, valid_ips):
+    matched_ips = {}
+    for line in file:
+        if line.startswith('lease '):
+            (junk, current_ip, junk) = line.split(' ')
+            if current_ip in valid_ips:
+                try:
+                    matched_ips[current_ip]['count'] += 1
+                except:
+                    matched_ips[current_ip] = {
+                        'count': 1,
+                        'starts': None,
+                        'ends': None
+                    }
+        else:
+            if line.lstrip(' ').startswith('starts '):
+                (
+                    junk1,
+                    junk2,
+                    date,
+                    time
+                ) = line.lstrip(' ').split(' ')
+                try:
+                    matched_ips[current_ip]['starts'] = date
+                except:
+                    pass
+            if line.lstrip(' ').startswith('ends '):
+                (
+                    junk1,
+                    junk2,
+                    date,
+                    time
+                ) = line.lstrip(' ').split(' ')
+                try:
+                    matched_ips[current_ip]['ends'] = date
+                except:
+                    pass
+    return matched_ips
+
+if __name__ == '__main__':
+    main()
