@@ -5,6 +5,10 @@
 # ddelete.sh -d '1 year ago' file.txt
 # ddelete.sh otherfile.xls
 # Default is '1 month old'
+#
+# OBSERVE ###
+# This requires GNU stat and GNU date to work properly. 
+#
 # By Stefan Midjich
 
 # Default last modified date for files
