@@ -40,11 +40,13 @@ print_usage() {
 EOF
 }
 
+# No arguments?
 if [ $# -lt 1 ]; then
 	print_usage
   exit 1
 fi
 
+# Traverse arguments with getopts
 while getopts 'pvm:d:' opt; do
   case "$opt" in
     p)
@@ -66,24 +68,29 @@ while getopts 'pvm:d:' opt; do
   esac
 done
 
+# Check if there are any positional arguments left. 
 if [ $(( $# - $OPTIND )) -lt 1 ]; then
   echo "No filename specified" 1>&2
   print_usage
   exit 1
 fi
 
+# Shift the internal arguments list to the remaining arguments.
 shift $OPTIND
 
+# Traverse the remaining positional arguments as filenames.
 for filename do
+  # Skip if the file does not exist.
   if [ ! -e "$filename" ]; then
-    echo "File does not exist" 1>&2
-    print_usage
-    exit 1
+    echo "File does not exist, skipping..." 1>&2
+    continue
   fi
 
+  # Take stat info from the file.
   read -a statData <<<$(stat -t "$filename" || exit 1)
   fileModifiedDate=${statData[12]}
 
+  # Check the file info last modified date and compare with provided arguments. 
   if [ "$modifiedDate" -gt "$fileModifiedDate" -a "$maxModifiedDate" -lt "$fileModifiedDate" ]; then
     test $onlyPrint = 1 && echo "$filename: $fileModifiedDate" && exit 0
     rm -rf "$filename" && test $verbose = 1 && echo "$filename with change time $(date -d @"$fileModifiedDate") deleted"
