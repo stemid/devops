@@ -15,13 +15,19 @@ verbose=0
 
 print_usage() {
   cat << 'EOF' 1>&2
-    Usage: $0 [-d <last modified date>] [-m <max modified date>] <filename>...
+    Usage: $0 [-hvp] [-d <last modified date>] [-m <max modified date>] <filename>...
+
+      -h  Show this help text.
+
+      -p  Only print matching files, don't delete anything. 
 
       -d  Last modified date in this form: '1 day ago'
           or '1 month ago'. See date(1) for more examples. 
 
       -m  Maximum modified date, the last modified date to delete. 
           Takes the same form as -d argument. 
+
+      -v  Be verbose.
 
       <filename> is a list of filenames to delete.
 
@@ -74,11 +80,8 @@ for filename do
   read -a statData <<<$(stat -t "$filename" || exit 1)
   fileModifiedDate=${statData[12]}
 
-  if [ $onlyPrint -eq 1 ]; then
-    echo "$filename: $fileModifiedDate"
-  fi
-
   if [ "$modifiedDate" -gt "$fileModifiedDate" -a "$maxModifiedDate" -lt "$fileModifiedDate" ]; then
+    test $onlyPrint = 1 && echo "$filename: $fileModifiedDate" && exit 0
     rm -rf "$filename" && test $verbose = 1 && echo "$filename with change time $(date -d @"$fileModifiedDate") deleted"
     exit 0
   else
