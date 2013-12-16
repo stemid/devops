@@ -8,11 +8,15 @@
 # 
 # Av Stefan Midjich
 
-customerName=""
-mysqlUser=""
-mysqlPass=""
-mysqlDB="" # Kan även vara en lista av databaser separerade av mellanslag
-mysqlHost=""
+# Hämta konfiguration från central plats
+test -f /etc/default/mysqlbackup && . /etc/default/mysqlbackup
+
+# Ska se ut så här
+#customerName=""
+#mysqlUser=""
+#mysqlPass=""
+#mysqlDB="" # Kan även vara en lista av databaser separerade av mellanslag
+#mysqlHost=""
 
 # Compress dumps
 gzip=1
@@ -55,7 +59,7 @@ for db in $mysqlDB; do
   todaysMysqlDump="$backupsDir/${db}-${todayString}.sql"
 
   # Avsluta om dagens backup redan existerar. 
-  if [[ -f "$todaysMysqlDump" ]]; then
+  if [[ -f "$todaysMysqlDump"* ]]; then
     echo "Todays dump already exists, exiting" && exit 1
   fi
 
@@ -63,6 +67,6 @@ for db in $mysqlDB; do
   $dumpCmd "$db" > "$todaysMysqlDump" || exit 1
 
   if [ $gzip -eq 1 ]; then
-    gzip -f "$todaysMysqlDump" && exit 0
+    gzip -f "$todaysMysqlDump" && continue
   fi
 done
