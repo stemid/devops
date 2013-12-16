@@ -5,12 +5,13 @@
 # * Användarens lösenord
 # Behöver följande PATH i crontab
 # PATH=$PATH:/usr/local/sbin:/usr/bin:/bin
+# 
 # Av Stefan Midjich
 
 customerName=""
 mysqlUser=""
 mysqlPass=""
-mysqlDB=""
+mysqlDB="" # Kan även vara en lista av databaser separerade av mellanslag
 mysqlHost=""
 
 # Compress dumps
@@ -40,25 +41,28 @@ if [[ ! -d "$backupsDir" ]]; then
   mkdir -p "$backupsDir" || exit 1
 fi
 
-# Rensa gamla SQL dumpar
-for sqlDump in "$backupsDir"/${mysqlDB}-*; do
-  # Syntaxet av stat(1) kommandot skiljer sig 
-  # på BSD och Mac OS Unix till exempel. 
-  if [[ $(stat -c %Z "$sqlDump" >/dev/null 2>&1) -lt "$weekAgoStamp" ]]; then
-    rm -f "$sqlDump" || exit 1
+# Loopa igenom alla databaser i mysqlDB och genomför backup
+for db in $mysqlDB; do
+  # Rensa gamla SQL dumpar
+  for sqlDump in "$backupsDir"/${db}-*; do
+    # Syntaxet av stat(1) kommandot skiljer sig 
+    # på BSD och Mac OS Unix till exempel. 
+    if [[ $(stat -c %Z "$sqlDump" >/dev/null 2>&1) -lt "$weekAgoStamp" ]]; then
+      rm -f "$sqlDump" || exit 1
+    fi
+  done
+
+  todaysMysqlDump="$backupsDir/${db}-${todayString}.sql"
+
+  # Avsluta om dagens backup redan existerar. 
+  if [[ -f "$todaysMysqlDump" ]]; then
+    echo "Todays dump already exists, exiting" && exit 1
+  fi
+
+  # Skapa ny SQL dump
+  $dumpCmd "$db" > "$todaysMysqlDump" || exit 1
+
+  if [ $gzip -eq 1 ]; then
+    gzip -f "$todaysMysqlDump" && exit 0
   fi
 done
-
-todaysMysqlDump="$backupsDir/${mysqlDB}-${todayString}.sql"
-
-# Avsluta om dagens backup redan existerar. 
-if [[ -f "$todaysMysqlDump" ]]; then
-  echo "Todays dump already exists, exiting" && exit 1
-fi
-
-# Skapa ny SQL dump
-$dumpCmd "$mysqlDB" > "$todaysMysqlDump" || exit 1
-
-if [ $gzip -eq 1 ]; then
-  gzip -f "$todaysMysqlDump" && exit 0
-fi
