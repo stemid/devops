@@ -18,6 +18,8 @@ test -f /etc/default/mysqlbackup && . /etc/default/mysqlbackup
 #mysqlDB="" # Kan även vara en lista av databaser separerade av mellanslag
 #mysqlHost=""
 
+test -z "$customerName" && exit 1
+
 # Compress dumps
 gzip=1
 
