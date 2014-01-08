@@ -9,7 +9,7 @@
 # Av Stefan Midjich
 
 # Hämta konfiguration från central plats
-test -f /etc/default/mysqlbackup && . /etc/default/mysqlbackup
+test -f /etc/default/mysqlbackup && . /etc/default/mysqlbackup || exit 0
 
 # Ska se ut så här
 #customerName=""
@@ -17,10 +17,13 @@ test -f /etc/default/mysqlbackup && . /etc/default/mysqlbackup
 #mysqlPass=""
 #mysqlDB="" # Kan även vara en lista av databaser separerade av mellanslag
 #mysqlHost=""
+#backupDest=""
+#maxAge="" # Följer date(1) -d syntax, om osäker så lämna tomt!
 
-test -z "$customerName" && exit 1
+# Avsluta om inte customerName är satt
+test -z "$mysqlUser" && exit 0
 
-# Compress dumps
+# Komprimera dumpen
 gzip=1
 
 # Är mysqlDB tom, dumpa alla databaser
@@ -28,10 +31,10 @@ mysqlDB=${mysqlDB:-"--all-databases"}
 
 # Syntaxet av date(1) kommandot skiljer sig 
 # från Mac OS och BSD. 
-backupsDir="/var/backups/mysql/${customerName}"
+backupsDir="${backupDest:-"/var/backups"}/${customerName:-"MysqlBackup"}"
 todayString=$(date -d today +%Y%m%d)
 todayStamp=$(date -d today +%s)
-weekAgoStamp=$(date -d 'week ago' +%s)
+maxAgeStamp=$(date -d ${maxAge:-"'5 days ago'"} +%s)
 
 dumpCmd="mysqldump --no-defaults --skip-lock-tables"
 
@@ -52,8 +55,8 @@ for db in $mysqlDB; do
   # Rensa gamla SQL dumpar
   for sqlDump in "$backupsDir"/${db}-*; do
     # Syntaxet av stat(1) kommandot skiljer sig 
-    # på BSD och Mac OS Unix till exempel. 
-    if [[ $(stat -c %Z "$sqlDump" >/dev/null 2>&1) -lt "$weekAgoStamp" ]]; then
+    # mellan Linux och BSD/Mac OS Unix. 
+    if [[ $(stat -c %Z "$sqlDump" >/dev/null 2>&1) -lt "$maxAgeStamp" ]]; then
       rm -f "$sqlDump" || exit 1
     fi
   done
