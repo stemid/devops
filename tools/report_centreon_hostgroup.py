@@ -110,5 +110,7 @@ for hostgroup in opts.hostgroups:
     hosts = get_hostgroup(conn, hostgroup)
     print(';'.join(map(lambda x: x['hostname'], hosts)), file=opts.output)
     service_lists = [item['services'] for item in hosts]
+    
+    # Thanks to cdunklau@freenode for help with itertools
     for service in izip_longest(*service_lists, fillvalue=''):
         print(';'.join(map(str, service)), file=opts.output)
