@@ -108,9 +108,12 @@ conn = mysql.connect(
 returned_data = []
 for hostgroup in opts.hostgroups:
     hosts = get_hostgroup(conn, hostgroup)
+    
+    # Print CSV file header with all hostnames
     print(';'.join(map(lambda x: x['hostname'], hosts)), file=opts.output)
     service_lists = [item['services'] for item in hosts]
     
+    # Print all services for each host
     # Thanks to cdunklau@freenode for help with itertools
     for service in izip_longest(*service_lists, fillvalue=''):
         print(';'.join(map(str, service)), file=opts.output)
