@@ -105,7 +105,6 @@ conn = mysql.connect(
 )
 
 # Gather up data for CSV conversion
-returned_data = []
 for hostgroup in opts.hostgroups:
     hosts = get_hostgroup(conn, hostgroup)
     
