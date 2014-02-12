@@ -34,7 +34,7 @@ mysqlDB=${mysqlDB:-"--all-databases"}
 backupsDir="${backupDest:-"/var/backups"}/${customerName:-"MysqlBackup"}"
 todayString=$(date -d today +%Y%m%d)
 todayStamp=$(date -d today +%s)
-maxAgeStamp=$(date -d ${maxAge:-"'5 days ago'"} +%s)
+maxAgeStamp=$(date -d ${maxAge:-'5 days ago'} +%s)
 
 dumpCmd="mysqldump --no-defaults --skip-lock-tables"
 
