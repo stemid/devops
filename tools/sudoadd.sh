@@ -17,7 +17,7 @@ sudo rm -f "$sudoers_testfile"
 test $rc -ne 0 && exit $?
 
 # Add it for real
-if [ ! grep -s "$sudoers_data" "$sudoers_file" &>/dev/null ]; then
+if sudo grep -s "$sudoers_data" "$sudoers_file" &>/dev/null; then
   echo "$sudoers_data" | sudo tee -a "$sudoers_file" &>/dev/null
 fi
 
