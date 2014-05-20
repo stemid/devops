@@ -9,9 +9,10 @@
 # Description:       Enable logstash
 ### END INIT INFO
 
-# Author: Stefan Midjich <swehack@gmail.com>
-# 
+# Logstash server init-script.
 # Made for and tested on Debian Wheezy with Logstash 1.4.0
+# 
+# Author: Stefan Midjich <swehack@gmail.com>
 
 # This is where you unpacked logstash to
 # WARNING: You need to remove the first line from $basedir/bin/logstash.lib.sh that says 
