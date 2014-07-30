@@ -66,6 +66,12 @@ def count(file, valid_ips):
                     pass
     return matched_ips
 
+def list_valid_ips(subnets, ips):
+    for subnet in subnets:
+        _ip = IPNetwork(subnet)
+        for _ip_address in list(_ip):
+            ips.append(str(_ip_address))
+
 arse = ArgumentParser(
     description = 'Create JSON statistics of used leases in ISC DHCPd',
     epilog = '''This program works by reading all the shared-network blocks in 
@@ -83,6 +89,7 @@ arse.add_argument(
 arse.add_argument(
     '-l', '--leases',
     metavar = '/var/lib/dhcp/dhcpd.leases',
+    default = '/var/lib/dhcp/dhcpd.leases',
     type = FileType('r'),
     help = 'File containing all leases for ISC DHCPd'
 )
@@ -102,6 +109,7 @@ arse.add_argument(
 arse.add_argument(
     '-c', '--configuration',
     metavar = '/etc/dhcp/dhcpd.conf',
+    default = '/etc/dhcp/dhcpd.conf',
     type = FileType('r'),
     help = 'ISC DHCPd Configuration file containing shared-network blocks'
 )
@@ -168,10 +176,15 @@ if args.list:
 
 # Get a list of valid IP-addresses to search the leases for. 
 search_ips = []
-for subnet in json_isp[args.isp_name]['subnets']:
-    _ip = IPNetwork(subnet)
-    for _ip_address in list(_ip):
-        search_ips.append(str(_ip_address))
+if args.isp_name == 'any':
+    for isp in json_isp:
+        list_valid_ips(json_isp[isp]['subnets'], search_ips)
+else:
+    list_valid_ips(json_isp[args.isp_name]['subnets'], search_ips)
+    #for subnet in json_isp[args.isp_name]['subnets']:
+    #    _ip = IPNetwork(subnet)
+    #    for _ip_address in list(_ip):
+    #        search_ips.append(str(_ip_address))
 
 matched_ips = count(args.leases, search_ips)
 
