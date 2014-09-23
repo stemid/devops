@@ -101,6 +101,14 @@ if [ $? -ne 0 ]; then
 	exit $ST_CR
 fi
 
+# Cleanup code
+set -e
+function cleanupDB() {
+  # Clean up db
+  mysql -h"$mysqlHost" $mysqlArgs -e "DELETE FROM $mysqlTable;"
+}
+trap cleanupDB EXIT
+
 # Create or update the timestamp
 test -z "$oldDBTimestamp" && mysql -h"$mysqlHost" $mysqlArgs -e "insert into $mysqlTable (lastcheck) values (null);" || \
 	mysql -h"$mysqlHost" $mysqlArgs -e "update $mysqlTable set lastcheck=null;"
