@@ -27,7 +27,7 @@ from iscconf import parse
 # valid IP-addresses as argument, and a file object to the leases. 
 # Return value is a dictionary of matched leases. 
 # Counting can take a long time on big leases files. 
-def count(file, valid_ips):
+def count_leases(file, valid_ips):
     matched_ips = {}
     for line in file:
         if line.startswith('lease '):
@@ -66,7 +66,7 @@ def count(file, valid_ips):
                     pass
     return matched_ips
 
-def list_valid_ips(subnets, ips):
+def get_valid_ips(subnets, ips):
     for subnet in subnets:
         _ip = IPNetwork(subnet)
         for _ip_address in list(_ip):
@@ -178,14 +178,10 @@ if args.list:
 search_ips = []
 if args.isp_name == 'any':
     for isp in json_isp:
-        list_valid_ips(json_isp[isp]['subnets'], search_ips)
+        get_valid_ips(json_isp[isp]['subnets'], search_ips)
 else:
-    list_valid_ips(json_isp[args.isp_name]['subnets'], search_ips)
-    #for subnet in json_isp[args.isp_name]['subnets']:
-    #    _ip = IPNetwork(subnet)
-    #    for _ip_address in list(_ip):
-    #        search_ips.append(str(_ip_address))
+    get_valid_ips(json_isp[args.isp_name]['subnets'], search_ips)
 
-matched_ips = count(args.leases, search_ips)
+matched_ips = count_leases(args.leases, search_ips)
 
 print(dumps(matched_ips, indent=indent), file=args.output)
