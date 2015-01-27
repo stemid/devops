@@ -16,16 +16,17 @@ def get_hostgroup(conn, hostgroup):
 
     # First get all the hosts matching that hostgroup
     rows = cursor.execute('''
-                           select host.host_name as hostname, 
-                           host.host_id as hostid, host.host_alias as hostalias 
-                           from host, hostgroup_relation, hostgroup 
-                           where hostgroup.hg_id = hostgroup_relation.hostgroup_hg_id 
-                           and host.host_id = hostgroup_relation.host_host_id 
-                           and hostgroup.hg_name = %s
-                           order by host.host_alias
-                           ''',
-                           (hostgroup, )
-                          )
+                          select host.host_name as hostname, 
+                          host.host_id as hostid, host.host_alias as hostalias, 
+                          host.host_address as ipaddress
+                          from host, hostgroup_relation, hostgroup 
+                          where hostgroup.hg_id = hostgroup_relation.hostgroup_hg_id 
+                          and host.host_id = hostgroup_relation.host_host_id 
+                          and hostgroup.hg_name = %s
+                          order by host.host_alias
+                          ''',
+                          (hostgroup, )
+                         )
     if rows <= 0:
         return []
 
@@ -33,9 +34,10 @@ def get_hostgroup(conn, hostgroup):
     hosts_data = []
 
     # Then get all the services for each host
-    for (hostname, hostid, hostalias) in hosts:
+    for (hostname, hostid, hostalias, ipaddress) in hosts:
         rows = cursor.execute('''
-                              select host.host_name as hostname, host.host_alias as hostalias, 
+                              select host.host_name as hostname, 
+                              host.host_alias as hostalias, 
                               service.service_description
                               from service, host_service_relation, host 
                               where host_service_relation.host_host_id = host.host_id 
@@ -54,6 +56,7 @@ def get_hostgroup(conn, hostgroup):
             'hostname': hostname,
             'hostid': hostid,
             'hostalias': hostalias,
+            'ipaddress': ipaddress,
             'services': service_data,
         })
 
@@ -62,7 +65,9 @@ def get_hostgroup(conn, hostgroup):
 
 # Initiate argument parser
 parser = ArgumentParser(
-    description = 'Extract CSV reports of all hosts and their services from centreon database.',
+    description = '''
+    Extract CSV reports of all hosts and their services from centreon database.
+    ''',
     epilog = 'By Stefan Midjich'
 )
 
@@ -109,7 +114,11 @@ for hostgroup in opts.hostgroups:
     hosts = get_hostgroup(conn, hostgroup)
     
     # Print CSV file header with all hostnames
-    print(';'.join(map(lambda x: x['hostname'], hosts)), file=opts.output)
+    print(';'.join(
+        map(
+            lambda x: '%s (%s)' % (x['hostname'], x['ipaddress']), hosts
+        )
+    ), file=opts.output)
     service_lists = [item['services'] for item in hosts]
     
     # Print all services for each host
