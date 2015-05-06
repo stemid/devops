@@ -28,7 +28,7 @@ try:
         os.environ['MUNIN_PLUGSTATE'],
         os.environ.get('statefile', 'munin-spamtime.state')
     ))
-    logfile_name = "{:s}/{:s}".format(
+    logfile_name = "{0:s}/{1:s}".format(
         os.environ.get('logdir', '/var/log'),
         os.environ.get('logfile', 'maillog')
     )
@@ -48,7 +48,7 @@ try:
     logfile_size = os.stat(logfile_name).st_size
 except OSError as e:
     print(
-        'Logfile {:s}: {:s}'.format(logfile_name, str(e)), 
+        'Logfile {0:s}: {1:s}'.format(logfile_name, str(e)), 
         file=sys.stderr
     )
     sys.exit(1)
@@ -73,7 +73,7 @@ if logfile_size < position:
         logfile_size = os.stat(logfile_name).st_size
     except OSError as e:
         print(
-            'Logfile {:s}: {:s}'.format(logfile_name, str(e)), 
+            'Logfile {0:s}: {1:s}'.format(logfile_name, str(e)), 
             file=sys.stderr
         )
         sys.exit(1)
