@@ -30,7 +30,7 @@ UNKNOWN=3
 
 print_usage() {
   cat <<EOF
-  Usage: $0 [-V] [-h] [-w <#>] [-c <#>] <TCP:port>
+  Usage: $0 [-V] [-h] [-w <#:#>] [-c <#:#>] <TCP:port>
 
     -h          Show this help text.
     -V          Show version.
@@ -39,6 +39,9 @@ print_usage() {
     <TCP:port>  TCP port name to check connections on.
                 Can also be UDP:port, like TCP:22 or UDP:123. 
                 Specify ipv4 or ipv6 like this 4UDP:123.
+
+    Example:
+      check_lsof.bash -w 5:680 -c 0:700 4TCP:mysql
 EOF
 }
 
@@ -58,24 +61,30 @@ while :; do
       exit $OK
       ;;
     -w|--warning)
-      warning_threshold=$2
+      # Split argument by : into an array
+      warning_array=(${2//:/ })
+      warning_threshold_min="${warning_array[0]}"
+      warning_threshold_max="${warning_array[1]}"
       shift 2
       ;;
     -c|--critical)
-      critical_threshold=$2
+      critical_array=(${2//:/ })
+      critical_threshold_min="${warning_array[0]}"
+      critical_threshold_max="${warning_array[1]}"
       shift 2
       ;;
     --)
       shift
       break
       ;;
-    -*)
-      echo "UNKNOWN: Unknown option (ignored): $1" >&2
-      shift
-      ;;
-    *)
-      break
-      ;;
+    # TODO: Instead take the remaining arguments and use them as lsof arguments
+    #-*)
+    #  echo "UNKNOWN: Unknown option (ignored): $1" >&2
+    #  shift
+    #  ;;
+    #*)
+    #  break
+    #  ;;
   esac
 done
 
@@ -88,7 +97,7 @@ fi
 tcp_port=$1
 
 # Get number of open connections
-open_connections=$(sudo lsof -Pni "$tcp_port" 2>/dev/null)
+open_connections=$(sudo lsof -t $@ -i "$tcp_port" 2>/dev/null)
 lsof_rc=$?
 
 # Check lsof return code status
@@ -98,21 +107,29 @@ if [ "$lsof_rc" -ne 0 ]; then
 fi
 
 connection_count=0
+# Count lines in output
 while IFS= read -r line; do
-  if [[ "$line" =~ '^COMMAND' ]]; then
-    continue
-  fi
-
   ((connection_count++))
 done <<<"$open_connections"
 
-if [ $connection_count -lt $critical_threshold ]; then
-  echo "CRITICAL: Connection count for $tcp_port is $connection_count"
+# Check thresholds
+if [ $connection_count -lt $critical_threshold_min ]; then
+  echo "CRITICAL: Connection count for $tcp_port is $connection_count < $critical_threshold_min"
   exit $CRITICAL
 fi
 
-if [ $connection_count -lt $warning_threshold ]; then
-  echo "WARNING: Connection count for $tcp_port is $connection_count"
+if [ $connection_count -gt $critical_threshold_max ]; then
+  echo "CRITICAL: Connection count for $tcp_port is $connection_count > $critical_threshold_max"
+  exit $CRITICAL
+fi
+
+if [ $connection_count -lt $warning_threshold_min ]; then
+  echo "WARNING: Connection count for $tcp_port is $connection_count < $warning_threshold_min"
+  exit $WARNING
+fi
+
+if [ $connection_count -gt $warning_threshold_max ]; then
+  echo "WARNING: Connection count for $tcp_port is $connection_count > $warning_threshold_max"
   exit $WARNING
 fi
 
