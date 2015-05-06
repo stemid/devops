@@ -38,11 +38,10 @@ except KeyError:
 
 try:
     statefile_size = os.stat(statefile_name).st_size
+    with open(statefile_name) as statefile:
+        (position, max_s, min_s, average_s) = statefile.readline().split(':')
 except (OSError, ValueError) as e:
     position = 0
-
-with open(statefile_name) as statefile:
-    (position, max_s, min_s, average_s) = statefile.readline().split(':')
 
 try:
     logfile_size = os.stat(logfile_name).st_size
