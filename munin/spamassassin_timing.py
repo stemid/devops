@@ -24,7 +24,10 @@ if len(sys.argv) > 1:
         sys.exit(0)
 
 try:
-    statefile_name = os.environ['statefile']
+    statefile_name = os.environ.get('statefile', '{:s}/{:s}'.format(
+        os.environ['MUNIN_PLUGSTATE'],
+        os.environ.get('statefile', 'munin-spamtime.state')
+    )
     logfile_name = "{:s}/{:s}".format(
         os.environ.get('logdir', '/var/log'),
         os.environ.get('logfile', 'maillog')
