@@ -6,7 +6,7 @@ import sys
 import glob
 import re
 
-graph_category = 'Antispam'
+graph_category = 'antispam'
 
 if len(sys.argv) > 1:
     if sys.argv[1] == 'config':
@@ -14,7 +14,8 @@ if len(sys.argv) > 1:
                          'graph_title {graph_title}\n'
                          'graph_category {graph_category}\n'
                          'graph_vlabel seconds\n'
-                         'time.label seconds\n')
+                         'time.label seconds\n'
+                        )
 
         print(output_string.format(
             host_name = os.environ['FQDN'],
@@ -102,7 +103,9 @@ times = sorted(times)
 
 # Calculate average value of parsed time values
 average_s = reduce(lambda x, y: x + y, times) / len(times)
-print('time.value %s' % average_s)
+print('average.value %s' % average_s)
+print('max.value %s' % max_s)
+print('min.value %s' % min_s)
 
 # Update statefile
 with open(statefile_name, 'w+') as statefile:
