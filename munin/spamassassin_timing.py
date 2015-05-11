@@ -47,7 +47,7 @@ try:
     statefile_size = os.stat(statefile_name).st_size
     with open(statefile_name) as statefile:
         (position, max_s, min_s, average_s) = statefile.readline().split(':')
-        average_s.rstrip('\n')
+        average_s = average_s.rstrip('\n')
 except (OSError, ValueError) as e:
     position = 0
 
