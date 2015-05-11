@@ -39,6 +39,10 @@ except KeyError:
     print('Please configure plugin', file=sys.stderr)
     sys.exit(1)
 
+position = 0
+max_s = 0
+min_s = 0
+average_s = 0
 try:
     statefile_size = os.stat(statefile_name).st_size
     with open(statefile_name) as statefile:
@@ -103,11 +107,12 @@ position = logfile.tell()
 # Sort list
 times = sorted(times)
 
-# Calculate average value of parsed time values
-average_s = reduce(lambda x, y: x + y, times) / len(times)
-print('average.value %s' % average_s/1000)
+print('average.value %s' % average_s)
 print('max.value %s' % max_s)
 print('min.value %s' % min_s)
+
+# Calculate average value of parsed time values
+average_s = reduce(lambda x, y: x + y, times) / len(times)
 
 # Update statefile
 with open(statefile_name, 'w+') as statefile:
