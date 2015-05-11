@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+# Configure in /etc/munin/plugin-conf.d/spamstats for example.
+# [spamassassin_timing]
+# env.logdir /var/log
+# env.logfile maillog
+# user nobody
+# 
+# Make sure the user is able to read the maillog. 
+# 
+# By Stefan Midjich <swehack@gmail.com>
 
 from __future__ import print_function
 import os
