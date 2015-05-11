@@ -14,9 +14,9 @@ if len(sys.argv) > 1:
                          'graph_title {graph_title}\n'
                          'graph_category {graph_category}\n'
                          'graph_vlabel seconds\n'
-                         'average.label seconds\n'
-                         'max.label seconds\n'
-                         'min.label seconds\n'
+                         'average.label average\n'
+                         'max.label max\n'
+                         'min.label min\n'
                         )
 
         print(output_string.format(
