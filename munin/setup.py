@@ -10,10 +10,6 @@ class my_install_scripts(install_scripts):
         self.install_dir = '/usr/share/munin/plugins'
         install_scripts.run(self)
 
-    def write_script(self, script_name, contents, mode="t", *ignored):
-        script_name = script_name.split('.py')[0]
-        install_scripts.write_script(self, script_name, contents, mode, ignored)
-
 setup(
     name = "Munin plugins",
     version = "0.1",

@@ -105,7 +105,7 @@ times = sorted(times)
 
 # Calculate average value of parsed time values
 average_s = reduce(lambda x, y: x + y, times) / len(times)
-print('average.value %s' % average_s)
+print('average.value %s' % average_s/1000)
 print('max.value %s' % max_s)
 print('min.value %s' % min_s)
 
