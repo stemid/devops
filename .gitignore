@@ -1,3 +1,6 @@
+*.egg
+*.egg-info
+build/
 spam/spam-XTDw7KFMTGaQ
 .*.swp
 *.pyc
