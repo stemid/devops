@@ -24,8 +24,6 @@ if len(sys.argv) > 1:
                          'graph_category {graph_category}\n'
                          'graph_vlabel seconds\n'
                          'average.label average\n'
-                         'max.label max\n'
-                         'min.label min\n'
                         )
 
         print(output_string.format(
@@ -118,8 +116,6 @@ position = logfile.tell()
 times = sorted(times)
 
 print('average.value %s' % average_s)
-print('max.value %s' % max_s)
-print('min.value %s' % min_s)
 
 # Calculate average value of parsed time values
 average_s = reduce(lambda x, y: x + y, times) / len(times)
@@ -127,10 +123,8 @@ average_s = reduce(lambda x, y: x + y, times) / len(times)
 # Update statefile
 with open(statefile_name, 'w+') as statefile:
     print(
-        '{position}:{max_s}:{min_s}:{average_s}'.format(
+        '{position}:{average_s}'.format(
             position = position, 
-            max_s = times[-1]/1000,
-            min_s = times[0]/1000,
             average_s = average_s/1000
         ),
         file=statefile
