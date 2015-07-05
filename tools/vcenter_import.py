@@ -1,4 +1,6 @@
 # coding: utf-8
+# Import script from vcenter to siptrack.
+# 
 # Most options are from configuration file.
 #   * ./import_defaults.cfg
 #   * /etc/siptrack_import.cfg
