@@ -1,30 +1,23 @@
 import os
-from setuptools import setup
-from distutils.command.install_scripts import install_scripts
+from setuptools import setup, find_packages
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-class my_install_scripts(install_scripts):
-    def run(self):
-        self.install_dir = '/usr/share/munin/plugins'
-        install_scripts.run(self)
 
 setup(
     name = "Munin plugins",
     version = "0.1",
     author = "Stefan Midjich",
     author_email = "swehack@gmail.com",
-    description = ("These are custom munin plugins."),
+    description = "These are custom munin plugins.",
     license = "BSD",
     keywords = "munin spamassassin",
     url = "https://github.com/stemid/devops",
-    packages = None,
+    packages = find_packages(),
     scripts = ['spamassassin_timing.py'],
     long_description = read('README.md'),
     classifiers = [
         "Development Status :: 2 - Pre-Alpha",
         "License :: OSI Approved :: BSD License",
     ],
-    cmdclass = {'install_scripts': my_install_scripts},
 )
