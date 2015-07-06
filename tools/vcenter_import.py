@@ -1,6 +1,4 @@
 # coding: utf-8
-# Import script from vcenter to siptrack.
-# 
 # Most options are from configuration file.
 #   * ./import_defaults.cfg
 #   * /etc/siptrack_import.cfg
@@ -237,11 +235,19 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
                     if args.dry_run:
                         print('Dry-run, skipping link of ESX host')
                     else:
-                        st_root.associate(result)
-                        if args.verbose:
-                            print('{0}: Linked host to cluster'.format(
-                                host_name.encode('utf-8')
-                            ))
+                        try:
+                            st_root.associate(result)
+                        except siptracklib.errors.SiptrackError:
+                            if args.verbose:
+                                print(
+                                    '{0}: Host already linked to cluster'.format(
+                                        host_name.encode('utf-8')
+                                    ))
+                        else:
+                            if args.verbose:
+                                print('{0}: Linked host to cluster'.format(
+                                    host_name.encode('utf-8')
+                                ))
         return
 
     # This attribute is only present in Folders
@@ -293,7 +299,7 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
             print('Dry-run, skipping reset of vApp attributes')
         else:
             st_attribute(st_vapp, 'description', 'vCenter VirtualApp')
-            st_attribute(st_folder, 'class', 'virtual appliance')
+            st_attribute(st_vapp, 'class', 'virtual appliance')
 
         for _entity in vc_root.vm:
             traverse_entities(st_vapp, st_dt, st_nt, _entity, depth+1)
