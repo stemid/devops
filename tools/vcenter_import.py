@@ -91,9 +91,15 @@ def add_network_info(st_device, st_nt, vm_network):
             print('Found network with no name! Skipping.', file=stderr)
         return
 
+    # If this object is missing we have nothing to import
     if not hasattr(vm_network.ipConfig, 'ipAddress'):
+        if args.verbose:
+            print('{0}: No ipAddress object, skipping network'.format(
+                network_name
+            ), file=stderr)
         return
 
+    # Start import by looping through all ip-addresses
     for _ip in vm_network.ipConfig.ipAddress:
         ip_address = _ip.ipAddress
         cidr_suffix = _ip.prefixLength
@@ -148,7 +154,7 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
     # This stores the name of the class
     object_type = vc_root.__class__.__name__
 
-    # This attribute is only present in datacenter objects
+    # Datacenter
     if object_type == 'vim.Datacenter':
         # This is unicode madness
         datacenter_name = unquote(vc_root.name).encode('utf-8').decode('utf-8')
@@ -186,7 +192,7 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
             traverse_entities(st_dc, st_dt, st_nt, _entity, depth+1)
         return
 
-    # This attribute appears in ClusterComputerResource objects, clusters
+    # Clusters
     if object_type == 'vim.ClusterComputeResource':
         cluster_name = unquote(vc_root.name).encode('utf-8').decode('utf-8')
 
@@ -213,7 +219,7 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
             traverse_entities(st_cluster, st_dt, st_nt, _entity, depth+1)
         return
 
-    # ESX host object name
+    # ESX Hosts
     if object_type == 'vim.HostSystem':
         host_name = unquote(vc_root.name).encode('utf-8').decode('utf-8')
 
@@ -250,7 +256,7 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
                                 ))
         return
 
-    # This attribute is only present in Folders
+    # Folders
     if object_type == 'vim.Folder':
         folder_name = unquote(vc_root.name).encode('utf-8').decode('utf-8')
 
@@ -279,7 +285,7 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
             traverse_entities(st_folder, st_dt, st_nt, _entity, depth+1)
         return
 
-    # This attribute is only present in vApps (resource groups)
+    # Virtual Appliances
     if object_type == 'vim.VirtualApp':
         vapp_name = unquote(vc_root.name).encode('utf-8').decode('utf-8')
 
@@ -307,6 +313,10 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
 
     # The rest should only be Virtual Machines
     if object_type != 'vim.VirtualMachine':
+        if args.verbose:
+            print('{0}: Found unknown object, skipping it'.format(
+                object_type
+            ))
         return
 
     vm = vc_root
@@ -376,6 +386,7 @@ def traverse_entities(st_root, st_dt, st_nt, vc_root, depth=1):
     if hasattr(vm, 'config'):
         config = vm.config
 
+        # This will help later to check for duplicate VMs or moved VMs
         st_attribute(st_vm, 'vcenter_uuid', config.instanceUuid, important=False)
 
         # OS Name
