@@ -13,7 +13,8 @@ $vms = (get-vm)
 $results = @()
 
 foreach($vm in $vms) {
-  $row = "" | select Folder, Name, HostName, AdapterType, NIC, IP, VLAN, OperatingSystem, CustomerTag, Tags, Host, Cluster
+  $row = "" | select Folder, Name, HostName, AdapterType, NIC, IP, VLAN, `
+  OperatingSystem, CustomerTag, Tags, Host, Cluster
   $row.Folder = $vm.Folder
   $row.Name = $vm.Name
   $row.HostName = $vm.Guest.HostName
@@ -34,4 +35,4 @@ foreach($vm in $vms) {
   $results += $row
 }
 
-$results | ConvertTo-Json | Set-Content $output_filename
+($results | ConvertTo-Json) | Out-File $output_filename
