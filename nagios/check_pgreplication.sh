@@ -1,6 +1,14 @@
 #!/bin/bash
 # Does the job for one particular client. Plenty of room for improvement. 
 # To be run on master using nrpe
+# 
+# DB Schema:
+# CREATE TABLE replication_testing (
+#     "timestamp" integer NOT NULL,
+#     server character varying(255),
+#     test character varying(255)
+# );
+#
 # By Stefan Midjich
 
 # Add the PATH where psql is, this one is for postgresql 9.1 on Debian 6. 
