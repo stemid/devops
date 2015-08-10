@@ -8,6 +8,7 @@ from email.mime.text import MIMEText
 from argparse import ArgumentParser
 from hashlib import md5
 from platform import node
+from datetime import datetime, timedelta
 
 EXIT_OK = 0
 EXIT_WARNING = 1
@@ -17,7 +18,7 @@ EXIT_UNKNOWN = 3
 parser = ArgumentParser(
     description=('Nagios check for monitoring the sending of mail through SMTP'
                  ' and measuring the time it takes.'),
-    epilog='by Stefan Midjich <swehack@gmail.com'
+    epilog='by Stefan Midjich <swehack@gmail.com>'
 )
 
 parser.add_argument(
@@ -60,6 +61,20 @@ parser.add_argument(
     action='store',
     default=node(),
     help='Local hostname of sender'
+)
+
+parser.add_argument(
+    '-l', '--ssl',
+    action='store_true',
+    default=False,
+    help='Use SSL directly'
+)
+
+parser.add_argument(
+    '-T', '--starttls',
+    action='store_true',
+    default=False,
+    help='Issue starttls during session'
 )
 
 parser.add_argument(
@@ -125,6 +140,13 @@ msg['Subject'] = args.subject
 msg['From'] = args.sender
 msg['To'] = args.rcpt
 
+starttime = datetime.now()
+
+if args.verbose > 1:
+    print('Mail submission started at {starttime}'.format(
+        starttime=starttime
+    ))
+
 if args.ssl:
     if args.verbose:
         print('Connecting with SSL to {host}'.format(host=args.host))
@@ -185,6 +207,16 @@ except smtplib.SMTPResponseException as e:
     ))
     exit(EXIT_CRITICAL)
 
+endtime = datetime.now()
+duration = endtime-starttime
+
+if args.verbose > 1:
+    print('Mail submission ended at {datetime}, duration {duration}'.format(
+        endtime=endtime,
+        duration=duration
+    ))
+
 s.quit()
 
+print('OK: Mail submission took {duration}'.format(duration=duration))
 exit(EXIT_OK)
