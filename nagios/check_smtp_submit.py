@@ -170,6 +170,9 @@ else:
         args.timeout
     )
 
+rcpts = []
+rcpts.append(args.rcpt)
+
 try:
     if args.auth:
         if args.verbose:
@@ -181,7 +184,7 @@ try:
         if args.verbose:
             print('Sending mail to {rcpt}'.format(rcpt=args.rcpt))
 
-        s.sendmail(sender, rcpts, msg.as_string())
+        s.sendmail(args.sender, rcpts, msg.as_string())
 except smtplib.SMTPConnectError as e:
     if args.verbose > 1:
         print(str(e))
