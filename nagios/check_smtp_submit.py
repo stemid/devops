@@ -189,7 +189,7 @@ except smtplib.SMTPConnectError as e:
     if args.verbose > 1:
         print(str(e))
 
-    print('CRITICAL: Server did not accept connection')
+    print('CRITICAL: Server did not accept SMTP-connection')
     exit(EXIT_CRITICAL)
 except smtplib.SMTPServerDisconnected as e:
     if args.verbose > 1:
@@ -209,12 +209,21 @@ except smtplib.SMTPResponseException as e:
         smtp_error=e.smtp_error
     ))
     exit(EXIT_CRITICAL)
+except socket.timeout as e:
+    if args.verbose > 1:
+        print(str(e))
+
+    print('UNKNOWN: Could not connect to {host} on port {port}'.format(
+        host=args.host,
+        port=args.port
+    ))
+    exit(EXIT_UNKNOWN)
 
 endtime = datetime.now()
 duration = endtime-starttime
 
 if args.verbose > 1:
-    print('Mail submission ended at {datetime}, duration {duration}'.format(
+    print('Mail submission finished at {datetime}, duration {duration}'.format(
         endtime=endtime,
         duration=duration
     ))
