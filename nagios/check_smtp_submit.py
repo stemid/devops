@@ -58,7 +58,8 @@ parser.add_argument(
     action='store',
     type=int,
     default=60,
-    help='Critical threshold in seconds, should not be higher than timeout value.'
+    help=('Critical threshold in seconds, should not be higher'
+          ' than timeout value.')
 )
 
 parser.add_argument(
@@ -125,24 +126,27 @@ parser.add_argument(
     help='Issue starttls during session'
 )
 
-#parser.add_argument(
-#    '-A', '--auth',
-#    action='store_true',
-#    default=False,
-#    help='Use SMTP authentication'
-#)
-#
-#parser.add_argument(
-#    '-U', '--username',
-#    action='store',
-#    help='SMTP Auth username'
-#)
-#
-#parser.add_argument(
-#    '-P', '--password',
-#    action='store',
-#    help='SMTP Auth password'
-#)
+# Not ready with SMTP Auth yet
+'''
+parser.add_argument(
+    '-A', '--auth',
+    action='store_true',
+    default=False,
+    help='Use SMTP authentication'
+)
+
+parser.add_argument(
+    '-U', '--username',
+    action='store',
+    help='SMTP Auth username'
+)
+
+parser.add_argument(
+    '-P', '--password',
+    action='store',
+    help='SMTP Auth password'
+)
+'''
 
 parser.add_argument(
     '-f', '--file',
@@ -277,18 +281,20 @@ if args.verbose > 1:
 s.quit()
 
 if duration_seconds > args.critical:
-    print('CRITICAL: Mail submission took {duration} seconds'.format(
-        duration=duration_seconds
-    ))
+    print((
+        'CRITICAL: Mail submission took too long'
+        ' | duration={duration}'
+    ).format(duration=duration_seconds))
     exit(EXIT_CRITICAL)
 
 if duration_seconds > args.warning:
-    print('WARNING: Mail submission took {duration} seconds'.format(
-        duration=duration_seconds
-    ))
+    print((
+        'WARNING: Mail submission took too long'
+        ' | duration={duration}'
+    ).format(duration=duration_seconds))
     exit(EXIT_WARNING)
 
-print('OK: Mail submission took {duration} seconds'.format(
+print('OK: Mail submitted | duration={duration}'.format(
     duration=duration_seconds
 ))
 exit(EXIT_OK)
