@@ -1,4 +1,20 @@
 #!/usr/bin/env python
+# Nagios check for SMTP mail submission.
+#
+# 2015-08-11: Have not yet implemented SMTP auth
+#
+# Check ./check_smtp_submit.py --help for more info and defaults.
+#
+# Argument -f can contain a formatting keyword to be replaced by a md5
+# checksum generated out of the bytearrays of host+sender+rcpt+subject.
+# For example:
+# Hi
+# This is your friendly monitoring system.
+# checksum: {checksum}
+# Bye
+#
+# by Stefan Midjich <swehack@gmail.com>
+
 
 from __future__ import print_function
 
@@ -27,6 +43,37 @@ parser.add_argument(
     action='store',
     default='localhost',
     help='SMTP server host'
+)
+
+parser.add_argument(
+    '-w', '--warning',
+    action='store',
+    type=int,
+    default=55,
+    help='Warning threshold in seconds'
+)
+
+parser.add_argument(
+    '-c', '--critical',
+    action='store',
+    type=int,
+    default=60,
+    help='Critical threshold in seconds, should not be higher than timeout value.'
+)
+
+parser.add_argument(
+    '-t', '--timeout',
+    action='store',
+    type=int,
+    default=60,
+    help='Timeout value for SMTP connection'
+)
+
+parser.add_argument(
+    '-v', '--verbose',
+    action='count',
+    default=False,
+    help='Verbose output. Use more v\'s to increase level of verbosity'
 )
 
 parser.add_argument(
@@ -78,24 +125,24 @@ parser.add_argument(
     help='Issue starttls during session'
 )
 
-parser.add_argument(
-    '-A', '--auth',
-    action='store_true',
-    default=False,
-    help='Use SMTP authentication'
-)
-
-parser.add_argument(
-    '-U', '--username',
-    action='store',
-    help='SMTP Auth username'
-)
-
-parser.add_argument(
-    '-P', '--password',
-    action='store',
-    help='SMTP Auth password'
-)
+#parser.add_argument(
+#    '-A', '--auth',
+#    action='store_true',
+#    default=False,
+#    help='Use SMTP authentication'
+#)
+#
+#parser.add_argument(
+#    '-U', '--username',
+#    action='store',
+#    help='SMTP Auth username'
+#)
+#
+#parser.add_argument(
+#    '-P', '--password',
+#    action='store',
+#    help='SMTP Auth password'
+#)
 
 parser.add_argument(
     '-f', '--file',
@@ -103,27 +150,13 @@ parser.add_argument(
     help='File with content for mail'
 )
 
-parser.add_argument(
-    '-t', '--timeout',
-    action='store',
-    type=int,
-    default=30,
-    help='Timeout value for SMTP connection'
-)
-
-parser.add_argument(
-    '-v', '--verbose',
-    action='count',
-    default=False,
-    help='Verbose output. Use more v\'s to increase level of verbosity'
-)
-
 args = parser.parse_args()
 
 checksum = md5()
-checksum.update(bytes(args.host, 'utf-8'))
-checksum.update(bytes(args.sender, 'utf-8'))
-checksum.update(bytes(args.rcpt, 'utf-8'))
+checksum.update(bytearray(args.host, 'utf-8'))
+checksum.update(bytearray(args.sender, 'utf-8'))
+checksum.update(bytearray(args.rcpt, 'utf-8'))
+checksum.update(bytearray(args.subject, 'utf-8'))
 
 if args.file is None:
     payload = '''Hi
@@ -233,16 +266,29 @@ except Exception as e:
 
 endtime = datetime.now()
 duration = endtime-starttime
+duration_seconds = duration.total_seconds()
 
 if args.verbose > 1:
     print('Mail submission finished at {endtime}, {duration} seconds'.format(
         endtime=endtime,
-        duration=duration.total_seconds()
+        duration=duration_seconds
     ))
 
 s.quit()
 
+if duration_seconds > args.critical:
+    print('CRITICAL: Mail submission took {duration} seconds'.format(
+        duration=duration_seconds
+    ))
+    exit(EXIT_CRITICAL)
+
+if duration_seconds > args.warning:
+    print('WARNING: Mail submission took {duration} seconds'.format(
+        duration=duration_seconds
+    ))
+    exit(EXIT_WARNING)
+
 print('OK: Mail submission took {duration} seconds'.format(
-    duration=duration.total_seconds()
+    duration=duration_seconds
 ))
 exit(EXIT_OK)
