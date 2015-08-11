@@ -5,7 +5,7 @@ from __future__ import print_function
 import smtplib
 from sys import exit
 from email.mime.text import MIMEText
-from argparse import ArgumentParser
+from argparse import ArgumentParser, FileType, ArgumentDefaultsHelpFormatter
 from hashlib import md5
 from platform import node
 from datetime import datetime, timedelta
@@ -18,7 +18,8 @@ EXIT_UNKNOWN = 3
 parser = ArgumentParser(
     description=('Nagios check for monitoring the sending of mail through SMTP'
                  ' and measuring the time it takes.'),
-    epilog='by Stefan Midjich <swehack@gmail.com>'
+    epilog='by Stefan Midjich <swehack@gmail.com>',
+    formatter_class=ArgumentDefaultsHelpFormatter
 )
 
 parser.add_argument(
@@ -98,7 +99,7 @@ parser.add_argument(
 
 parser.add_argument(
     '-f', '--file',
-    type=file,
+    type=FileType('r'),
     help='File with content for mail'
 )
 
@@ -120,9 +121,9 @@ parser.add_argument(
 args = parser.parse_args()
 
 checksum = md5()
-checksum.update(bytes(args.host))
-checksum.update(bytes(args.sender))
-checksum.update(bytes(args.rcpt))
+checksum.update(bytes(args.host, 'utf-8'))
+checksum.update(bytes(args.sender, 'utf-8'))
+checksum.update(bytes(args.rcpt, 'utf-8'))
 
 if args.file is None:
     payload = '''Hi
@@ -200,18 +201,29 @@ except smtplib.SMTPServerDisconnected as e:
         timeout=args.timeout
     ))
     exit(EXIT_CRITICAL)
-except smtplib.SMTPResponseException as e:
+except (
+    smtplib.SMTPResponseException,
+    smtplib.SMTPSenderRefused,
+    smtplib.SMTPRecipientsRefused,
+    smtplib.SMTPDataError
+) as e:
     if args.verbose > 1:
         print(str(e))
 
-    print('CRITICAL: Server response was {smtp_code}: {smtp_error}'.format(
-        smtp_code=e.smtp_code,
-        smtp_error=e.smtp_error
-    ))
+    try:
+        print('CRITICAL: Server response was {smtp_code}: {smtp_error}'.format(
+            smtp_code=e.smtp_code,
+            smtp_error=e.smtp_error
+        ))
+    except AttributeError:
+        print('CRITICAL: Error response from server {host}: {error}'.format(
+            host=args.host,
+            error=str(e)
+        ))
     exit(EXIT_CRITICAL)
-except socket.timeout as e:
+except Exception as e:
     if args.verbose > 1:
-        print(str(e))
+        print(type(e))
 
     print('UNKNOWN: Could not connect to {host} on port {port}'.format(
         host=args.host,
@@ -223,12 +235,14 @@ endtime = datetime.now()
 duration = endtime-starttime
 
 if args.verbose > 1:
-    print('Mail submission finished at {datetime}, duration {duration}'.format(
+    print('Mail submission finished at {endtime}, {duration} seconds'.format(
         endtime=endtime,
-        duration=duration
+        duration=duration.total_seconds()
     ))
 
 s.quit()
 
-print('OK: Mail submission took {duration}'.format(duration=duration))
+print('OK: Mail submission took {duration} seconds'.format(
+    duration=duration.total_seconds()
+))
 exit(EXIT_OK)
