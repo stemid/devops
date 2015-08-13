@@ -126,8 +126,6 @@ parser.add_argument(
     help='Issue starttls during session'
 )
 
-# Not ready with SMTP Auth yet
-'''
 parser.add_argument(
     '-A', '--auth',
     action='store_true',
@@ -135,6 +133,8 @@ parser.add_argument(
     help='Use SMTP authentication'
 )
 
+# Not ready with SMTP Auth yet
+'''
 parser.add_argument(
     '-U', '--username',
     action='store',
@@ -156,11 +156,13 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+# This crazy utf-8 decoding is only to remain backwards compatible with python
+# 2.6.6 and 2.7. To support only Python 3 I would have used bytes(). 
 checksum = md5()
-checksum.update(bytearray(args.host, 'utf-8'))
-checksum.update(bytearray(args.sender, 'utf-8'))
-checksum.update(bytearray(args.rcpt, 'utf-8'))
-checksum.update(bytearray(args.subject, 'utf-8'))
+checksum.update(bytearray(args.host, 'utf-8').decode('utf-8'))
+checksum.update(bytearray(args.sender, 'utf-8').decode('utf-8'))
+checksum.update(bytearray(args.rcpt, 'utf-8').decode('utf-8'))
+checksum.update(bytearray(args.subject, 'utf-8').decode('utf-8'))
 
 if args.file is None:
     payload = '''Hi
@@ -270,7 +272,7 @@ except Exception as e:
 
 endtime = datetime.now()
 duration = endtime-starttime
-duration_seconds = duration.total_seconds()
+duration_seconds = duration.seconds
 
 if args.verbose > 1:
     print('Mail submission finished at {endtime}, {duration} seconds'.format(
