@@ -46,6 +46,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    '-R', '--resolution',
+    action='store',
+    type=int,
+    default=1000000,
+    help='Resolution for threshold times'
+)
+
+parser.add_argument(
     '-w', '--warning',
     action='store',
     type=int,
@@ -59,7 +67,8 @@ parser.add_argument(
     type=int,
     default=60,
     help=('Critical threshold in seconds, should not be higher'
-          ' than timeout value.')
+          ' than timeout value. This and warning seconds are'
+          ' calculated against a microsecond value by default.')
 )
 
 parser.add_argument(
@@ -157,7 +166,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # This crazy utf-8 decoding is only to remain backwards compatible with python
-# 2.6.6 and 2.7. To support only Python 3 I would have used bytes(). 
+# 2.6.6 and 2.7. To support only Python 3 I would have used bytes().
 checksum = md5()
 checksum.update(bytearray(args.host, 'utf-8').decode('utf-8'))
 checksum.update(bytearray(args.sender, 'utf-8').decode('utf-8'))
@@ -272,7 +281,7 @@ except Exception as e:
 
 endtime = datetime.now()
 duration = endtime-starttime
-duration_seconds = duration.seconds
+duration_seconds = duration.microseconds
 
 if args.verbose > 1:
     print('Mail submission finished at {endtime}, {duration} seconds'.format(
@@ -282,14 +291,14 @@ if args.verbose > 1:
 
 s.quit()
 
-if duration_seconds > args.critical:
+if duration_seconds > args.critical*args.resolution:
     print((
         'CRITICAL: Mail submission took too long'
         ' | duration={duration}'
     ).format(duration=duration_seconds))
     exit(EXIT_CRITICAL)
 
-if duration_seconds > args.warning:
+if duration_seconds > args.warning*args.resolution:
     print((
         'WARNING: Mail submission took too long'
         ' | duration={duration}'
