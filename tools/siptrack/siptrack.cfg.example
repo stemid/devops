@@ -1,0 +1,7 @@
+# Example configuration for siptrack connection with siptracklib.
+
+[siptrack]
+hostname = siptrack.localhost.local
+username = admin
+password = admin
+ssl = True
