@@ -63,18 +63,18 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    'key_value',
-    action='store',
-    metavar='key=value',
-    help='Key=value form of attribute name and the value you wish to assign.'
-)
-
-parser.add_argument(
     '-s', '--path-separator',
     action='store',
     default=':',
     dest='path_separator',
     help='Path separator to use in -d argument (siptrack device path).'
+)
+
+parser.add_argument(
+    'key_value',
+    action='store',
+    metavar='key=value',
+    help='Key=value form of attribute name and the value you wish to assign.'
 )
 
 
