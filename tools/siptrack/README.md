@@ -2,11 +2,11 @@
 
 Here is a collection of tools written to work with the [siptrack](https://github.com/sii/siptrackweb) host of utilities. 
 
-## add attribute (add\_attribute.py)
+# add attribute (add\_attribute.py)
 
 This tool takes the same configuration file format as vcenter\_import.py to connect to siptrack. 
 
-### Examples
+## Examples
 
     ./add_attribute.py -c siptrack.cfg -d 'Public Cloud:VMware:Customer' -ri customername=Customer
 
