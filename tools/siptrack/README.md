@@ -2,9 +2,15 @@
 
 Here is a collection of tools written to work with the [siptrack](https://github.com/sii/siptrackweb) host of utilities. 
 
-## add attribute
+## add attribute (add\_attribute.py)
 
 This tool takes the same configuration file format as vcenter\_import.py to connect to siptrack. 
+
+### Examples
+
+    ./add_attribute.py -c siptrack.cfg -d 'Public Cloud:VMware:Customer' -ri customername=Customer
+
+This will add or update the attribute *customername* with the value *Customer* and set it as important (-i) so it shows up in the device overview, it will be done recursively on all device categories under the one named *Customer*. 
 
 # vCenter import (vcenter\_import.py)
 

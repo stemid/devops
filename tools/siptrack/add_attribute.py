@@ -15,10 +15,7 @@ config = ConfigParser()
 
 parser = ArgumentParser(
     description='Add attributes to devices in siptrack',
-    epilog=('Example: ./add_attribute.py -d'
-            ' \'Public Cloud:Devices:Customer\' \'customername=ABC\''
-            ''
-            'by Stefan Midjich <swehack@gmail.com>'),
+    epilog='by Stefan Midjich <swehack@gmail.com>',
     formatter_class=ArgumentDefaultsHelpFormatter
 )
 
