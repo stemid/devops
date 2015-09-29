@@ -8,6 +8,19 @@ from argparse import ArgumentParser
 from email.parser import Parser
 
 
+def extract_payloads(mail):
+    payloads = mail.get_payload()
+
+    for payload in payloads:
+        if payload.is_multipart():
+            extract_payloads(payload)
+        else:
+            if payload.get_content_type() in ['text/html', 'text/plain']:
+                print payload.get_payload(decode=True)
+            else:
+                print payload.get_payload()
+
+
 parser = ArgumentParser()
 
 parser.add_argument(
@@ -20,13 +33,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 mail = Parser().parse(args.mail_file)
-if mail.is_multipart is False:
-    exit(1)
 
-payloads = mail.get_payload()
+extract_payloads(mail)
 
-for payload in payloads:
-    if payload.get_content_type() in ['text/html', 'text/plain']:
-        print payload.get_payload(decode=True)
-    else:
-        print payload.get_payload()
