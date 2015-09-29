@@ -26,4 +26,7 @@ if mail.is_multipart is False:
 payloads = mail.get_payload()
 
 for payload in payloads:
-    print payload.get_payload(decode=True)
+    if payload.get_content_type() in ['text/html', 'text/plain']:
+        print payload.get_payload(decode=True)
+    else:
+        print payload.get_payload()
