@@ -54,5 +54,5 @@ if ($PercentUsed -ge $CritPercent) {
   $nagiosStatus = 'OK'
 }
 
-echo "$nagiosStatus $PercentUsed% of licenses in use ($InUse/$Total)"
+echo "${nagiosStatus}: $PercentUsed% of licenses in use ($InUse/$Total) | used_percent: $PercentUsed"
 Exit $return
