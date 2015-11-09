@@ -78,7 +78,7 @@ class HPRAIDCollector(collector.BaseCollector):
         (stdout, stderr) = subprocess.Popen(
             command.split(' '),
             stdout=subprocess.PIPE
-        )
+        ).communicate()
         return self._parseOutput(output)
 
     def canCollect(self):
