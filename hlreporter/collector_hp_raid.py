@@ -49,7 +49,7 @@ class HPRAIDCollector(collector.BaseCollector):
         raid = hp.initComponent('raid')
 
         # Get RAID controllers
-        controllers = getRAIDControllers()
+        controllers = self.getRAIDControllers()
         if not len(controllers):
             return
 
