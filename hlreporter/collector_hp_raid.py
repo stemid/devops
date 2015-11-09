@@ -79,7 +79,7 @@ class HPRAIDCollector(collector.BaseCollector):
             command.split(' '),
             stdout=subprocess.PIPE
         ).communicate()
-        return self._parseOutput(output)
+        return self._parseOutput(stdout)
 
     def canCollect(self):
         return os.path.isfile(hpacucli_path) and \
