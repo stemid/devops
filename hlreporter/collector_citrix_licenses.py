@@ -34,14 +34,43 @@ class CitrixLicenseCollector(collector.BaseCollector):
 
         for (l_type, l_name) in license_types:
             (total, in_use) = self.collectLicenseInfo(license_type=l_type)
+            free = total-in_use
+
             if total == 0:
                 # System has no such licenses so skip counting them
                 continue
 
-            in_use_metric = citrix.initMetric('{0} in use'.format(l_name), in_use, 'NUM_ABSOLUTE', 'licenses')
-            total_metric = citrix.initMetric('{0} total'.format(l_name), total, 'NUM_ABSOLUTE', 'licenses')
+            free_metric = citrix.initMetric(
+                '{0} free'.format(
+                    l_name
+                ),
+                free,
+                'NUM_ABSOLUTE',
+                'licenses'
+            )
+            in_use_metric = citrix.initMetric(
+                '{0} in use'.format(
+                    l_name
+                ),
+                in_use,
+                'NUM_ABSOLUTE',
+                'licenses'
+            )
+            total_metric = citrix.initMetric(
+                '{0} total'.format(
+                    l_name
+                ),
+                total,
+                'NUM_ABSOLUTE',
+                'licenses'
+            )
 
-            citrix.initMetricGraph('{0} license usage'.format(l_name), [total_metric, in_use_metric])
+            citrix.initMetricGraph(
+                '{0} license usage'.format(
+                    l_name
+                ),
+                [total_metric, in_use_metric, free_metric]
+            )
 
     def collectLicenseInfo(self, license_type):
         total = 0
