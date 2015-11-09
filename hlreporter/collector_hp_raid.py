@@ -19,7 +19,7 @@ class HPRAIDCollector(collector.BaseCollector):
     name = 'HP RAID collector'
     platforms = ['linux']
 
-    def _parseOutput(data):
+    def _parseOutput(self, data):
         controllers = []
 
         controller = {}
@@ -79,7 +79,7 @@ class HPRAIDCollector(collector.BaseCollector):
             command.split(' '),
             stdout=subprocess.PIPE
         ).communicate()
-        return _parseOutput(stdout)
+        return self._parseOutput(stdout)
 
     def canCollect(self):
         return os.path.isfile(hpacucli_path) and \
