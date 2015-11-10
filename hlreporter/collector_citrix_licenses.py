@@ -4,7 +4,6 @@
 import wmi
 import win32com.client
 from hlreporterlib import collector
-from hlreporterlib import errors
 
 HELP = """Collect stats on citrix licenses"""
 
