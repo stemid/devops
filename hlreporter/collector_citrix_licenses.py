@@ -1,5 +1,5 @@
 # hlreporter - Citrix license collector for www.monitorscout.com
-# by Stefan Midjich <swehack@gmail.com
+# by Stefan Midjich <swehack@gmail.com>
 
 import wmi
 import win32com.client
