@@ -13,6 +13,7 @@ from hlreporterlib import collector
 from hlreporterlib import errors
 
 hpacucli_path = '/usr/sbin/hpacucli'
+use_sudo = True
 
 
 class HPRAIDCollector(collector.BaseCollector):
@@ -74,7 +75,14 @@ class HPRAIDCollector(collector.BaseCollector):
                 )
 
     def getRAIDControllers(self):
-        command = '{0} controller all show status'.format(hpacucli_path)
+        if use_sudo:
+            command = '{sudo} {cmd} controller all show status'.format(
+                cmd=hpacucli_path,
+                sudo='sudo'
+            )
+        else:
+            command = '{0} controller all show status'.format(hpacucli_path)
+
         (stdout, stderr) = subprocess.Popen(
             command.split(' '),
             stdout=subprocess.PIPE
