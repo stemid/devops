@@ -90,5 +90,4 @@ class HPRAIDCollector(collector.BaseCollector):
         return self._parseOutput(stdout)
 
     def canCollect(self):
-        return os.path.isfile(hpacucli_path) and \
-                os.access(hpacucli_path, (os.X_OK & os.R_OK))
+        return os.path.isfile(hpacucli_path)
