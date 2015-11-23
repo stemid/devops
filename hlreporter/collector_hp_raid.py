@@ -55,7 +55,13 @@ class HPRAIDCollector(collector.BaseCollector):
             return
 
         for controller in controllers:
-            controller_name = controller.keys()[0]
+            # Quick workaround for "list index out of range" error on system
+            # with three RAID cards.
+            try:
+                controller_name = controller.keys()[0]
+            except:
+                continue
+
             for (
                 component_name,
                 component_status
