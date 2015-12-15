@@ -17,8 +17,11 @@
 # Defaults:nagios !requiretty
 # nagios ALL=NOPASSWD: /usr/sbin/lsof
 # Place that into /etc/sudoers.d/nrpe and make the file 0440
+#
+# Version 0.2
+#   Now has munin support.
 
-Program_Version='check_lsof.bash 0.1 by Stefan Midjich'
+Program_Version='check_lsof.bash 0.2 by Stefan Midjich'
 
 PATH=/bin:/usr/sbin:/usr/bin
 
@@ -27,6 +30,13 @@ OK=0
 WARNING=1
 CRITICAL=2
 UNKNOWN=3
+
+# Get munin service name from $0
+get_service() {
+  IFS='_' read -ra comp <<< "$0"
+  service="${comp[${#comp[@]} -1]}"
+  return $service
+}
 
 print_usage() {
   cat <<EOF
@@ -88,10 +98,21 @@ while :; do
   esac
 done
 
-# Check final positional argument
-if [ -z "$1" ]; then
+# Check final positional argument only if not invoked by munin
+if [ -z "$1" -a -z "$MUNIN_PLUGSTATE" ]; then
   print_usage
   exit $UNKNOWN
+fi
+
+# Check for munin invocation in final parameter
+if [ "$1" -eq 'config' -a -n $MUNIN_PLUGSTATE ]; then
+  munin_service=$(get_service $0)
+  echo "host_name $FQDN"
+  echo "graph_title Number of connections $munin_service"
+  echo "graph_category processes"
+  echo "graph_vlabel connections"
+  echo "connections.label current"
+  exit 0
 fi
 
 tcp_port=$1
@@ -101,7 +122,7 @@ open_connections=$(sudo lsof -t $@ -i "$tcp_port" 2>/dev/null)
 lsof_rc=$?
 
 # Check lsof return code status
-if [ "$lsof_rc" -ne 0 ]; then
+if [ "$lsof_rc" -ne 0 -a -z "$MUNIN_PLUGSTATE" ]; then
   echo "CRITICAL: No connections for $tcp_port"
   exit $CRITICAL
 fi
@@ -111,6 +132,11 @@ connection_count=0
 while IFS= read -r line; do
   ((connection_count++))
 done <<<"$open_connections"
+
+if [ -n "$MUNIN_PLUGSTATE" ]; then
+  echo "connections.value $open_connections"
+  exit $OK
+fi
 
 # Check thresholds
 if [ $connection_count -lt $critical_threshold_min ]; then

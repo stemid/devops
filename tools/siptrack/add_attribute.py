@@ -162,7 +162,7 @@ def main():
 
     # Find the last component of the device category path
     for com in args.device_path.split(args.path_separator):
-        _st_com = _st_com.getChildByName(com.encode('utf-8'))
+        _st_com = _st_com.getChildByName(com.decode('utf-8'))
         if not _st_com:
             if args.verbose:
                 print('Device path not found, exiting', file=stderr)

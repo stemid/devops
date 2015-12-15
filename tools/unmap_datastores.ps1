@@ -19,10 +19,7 @@ foreach ($ds in get-datastore) {
   if ($dsv.Summary.accessible -and $dsv.Capability.PerFileThinProvisioningSupported) {
     $ds.Name + ": CapacityGB=" + [int]($ds.CapacityMB / $MB_TO_GB) + " FreeGB=" + [int]($ds.FreeSpaceMB / $MB_TO_GB) + " UncommittedGB=" + [int]($dsv.summary.uncommitted / $BYTES_TO_GB)
     $esx = $ds | get-vmhost | select-object -first 1
-    $esx
     $esxcli = get-esxcli -VMHost $esx
-    $esxcli.system.time.get()
     $esxcli.storage.vmfs.unmap(200, $ds, $null) | out-null
-    write-debug "Reclaimed space from $ds.Name"
   }
 }
