@@ -175,36 +175,28 @@ def main():
             host=config.get('vcenter', 'hostname')
         ))
 
+    # Workaround for GH issue #235, self-signed cert
     try:
-        # Workaround for GH issue #235, self-signed cert
-        try:
-            # Try this first, should work for python 2.7.3 and up
-            import ssl
-            context = ssl._create_unverified_context()
-            context.verify_mode = ssl.CERT_NONE
-        except:
-            # This is more modern
-            import ssl
-            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-            context.verify_mode = ssl.CERT_NONE
-            pass
+        import ssl
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context.verify_mode = ssl.CERT_NONE
+        if args.verbose > 1:
+            print('NOICE!')
+    except:
+        # Wheezy still not supported by this, barely even ubuntu trusty
+        import ssl
+        context = ssl.create_default_context()
+        context.verify_mode = ssl.CERT_NONE
+        if args.verbose > 1:
+            print('Your version is fine for now')
 
-        si = SmartConnect(
-            host=config.get('vcenter', 'hostname'),
-            user=config.get('vcenter', 'username'),
-            pwd=config.get('vcenter', 'password'),
-            port=config.getint('vcenter', 'port'),
-            sslContext=context
-        )
-    except Exception as e:
-        if args.verbose:
-            print(
-                'Could not connect to vcenter server: {0}'.format(
-                    str(e)
-                ),
-                file=stderr
-            )
-        raise Exception(e)
+    si = SmartConnect(
+        host=config.get('vcenter', 'hostname'),
+        user=config.get('vcenter', 'username'),
+        pwd=config.get('vcenter', 'password'),
+        port=config.getint('vcenter', 'port'),
+        sslContext=context
+    )
 
     atexit.register(Disconnect, si)
 
