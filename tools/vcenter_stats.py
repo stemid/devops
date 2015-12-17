@@ -178,13 +178,17 @@ def main():
     try:
         # Workaround for GH issue #235, self-signed cert
         try:
+            # Try this first, should work for python 2.7.3 and up
+            import ssl
+            context = ssl._create_unverified_context()
+            context.verify_mode = ssl.CERT_NONE
+        except:
+            # This is more modern
             import ssl
             context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
             context.verify_mode = ssl.CERT_NONE
-        except:
-            import ssl
-            context = ssl.create_default_context()
-            context.verify_mode = ssl.CERT_NONE
+            pass
+
         si = SmartConnect(
             host=config.get('vcenter', 'hostname'),
             user=config.get('vcenter', 'username'),
