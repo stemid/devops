@@ -104,7 +104,6 @@ def import_stats(vc_node, es):
     es_res = es.index(
         index=d.strftime(config.get('elasticsearch', 'index')),
         doc_type=config.get('elasticsearch', 'doctype'),
-        id=vm_object_id,
         body=stats
     )
 
