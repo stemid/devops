@@ -1,18 +1,32 @@
 #!/usr/bin/env python
 # Gather vcenter stats and insert into elasticsearch index
 
+from __future__ import print_function
+
 import json
 import atexit
 from sys import exit, stderr
-from urllib.parse import unquote
 from argparse import ArgumentParser, FileType
-from configparser import RawConfigParser
+from datetime import datetime
+
+try:
+    from urllib.parse import unquote
+    from configparser import RawConfigParser
+except ImportError:
+    from ConfigParser import RawConfigParser
+    from urllib import unquote
+    pass
 
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
+from elasticsearch import Elasticsearch
+
 config = RawConfigParser()
-config.readfp(open('vcenter_stats.cfg'))
+try:
+    config.readfp(open('vcenter_stats.cfg'))
+except FileNotFoundError:
+    pass
 config.read(['/etc/vcenter_stats.cfg', './vcenter_stats.local.cfg'])
 
 parser = ArgumentParser(
@@ -57,24 +71,56 @@ def entity_info(vc_entity):
 
     # The Unicode madness is for siptrack
     return (
-        vc_name.encode('utf-8'),
-        obj_id.encode('utf-8')
+        vc_name,
+        obj_id
     )
 
 
-def import_stats(vc_node):
+def import_stats(vc_node, es):
+    args = parser.parse_args()
+
     (vm_name, vm_object_id) = entity_info(vc_node)
 
-    stats = vc_node.summary.quickStats
-    print('{vm}: consumedOverheadMemory: {mem}'.format(
-        vm=vm_name,
-        mem=stats.consumedOverheadMemory
-    ))
-    print(dir(stats))
-    return
+    d = datetime.now()
+
+    quickStats = vc_node.summary.quickStats
+    stats = {}
+    stats['timestamp'] = d
+    stats['vm_name'] = vm_name
+    stats['consumedOverheadMemory'] = quickStats.consumedOverheadMemory
+    stats['distributedCpuEntitlement'] = quickStats.distributedCpuEntitlement
+    stats['distributedMemoryEntitlement'] = quickStats.distributedMemoryEntitlement
+    stats['guestMemoryUsage'] = quickStats.guestMemoryUsage
+    stats['hostMemoryUsage'] = quickStats.hostMemoryUsage
+    stats['overallCpuDemand'] = quickStats.overallCpuDemand
+    stats['overallCpuUsage'] = quickStats.overallCpuUsage
+    stats['privateMemory'] = quickStats.privateMemory
+    stats['sharedMemory'] = quickStats.sharedMemory
+    stats['staticCpuEntitlement'] = quickStats.staticCpuEntitlement
+    stats['staticMemoryEntitlement'] = quickStats.staticMemoryEntitlement
+    stats['swappedMemory'] = quickStats.swappedMemory
+    stats['uptimeSeconds'] = quickStats.uptimeSeconds
+
+    es_res = es.index(
+        index=d.strftime(config.get('elasticsearch', 'index')),
+        doc_type=config.get('elasticsearch', 'doctype'),
+        id=vm_object_id,
+        body=stats
+    )
+
+    if args.verbose and es_res['created']:
+        print('{vm}: Created new index {index} in elasticsearch'.format(
+            vm=vm_name,
+            index=es_res
+        ))
+    elif args.verbose:
+        print('{vm}: Imported data into elasticsearch: {data}'.format(
+            vm=vm_name,
+            data=es_res
+        ))
 
 
-def traverse_vc(vc_root, depth=1):
+def traverse_vc(vc_root, es, depth=1):
     args = parser.parse_args()
 
     maxdepth = args.max_recursion
@@ -93,11 +139,9 @@ def traverse_vc(vc_root, depth=1):
     if object_type == 'vim.Datacenter':
         (datacenter_name, datacenter_object_id) = entity_info(vc_root)
 
-        st_dc = st_root.getChildByName(datacenter_name)
-
         # Go through all the VM folders
         for _entity in vc_root.vmFolder.childEntity:
-            traverse_vc(_entity, depth+1)
+            traverse_vc(_entity, es, depth+1)
         return
 
     if object_type == 'vim.Folder':
@@ -105,7 +149,7 @@ def traverse_vc(vc_root, depth=1):
 
         # Traverse subfolders
         for _entity in vc_root.childEntity:
-            traverse_vc(_entity, depth+1)
+            traverse_vc(_entity, es, depth+1)
         return
 
     if object_type == 'vim.VirtualApp':
@@ -113,11 +157,12 @@ def traverse_vc(vc_root, depth=1):
 
         # Loop through VMs in this vApp
         for _entity in vc_root.vm:
-            traverse_vc(_entity, depth+1)
+            traverse_vc(_entity, es, depth+1)
         return
 
     if object_type == 'vim.VirtualMachine':
-        import_stats(vc_root)
+        import_stats(vc_root, es)
+
 
 def main():
     args = parser.parse_args()
@@ -131,42 +176,37 @@ def main():
         ))
 
     try:
+        # Workaround for GH issue #235, self-signed cert
+        import ssl
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context.verify_mode = ssl.CERT_NONE
         si = SmartConnect(
             host=config.get('vcenter', 'hostname'),
             user=config.get('vcenter', 'username'),
             pwd=config.get('vcenter', 'password'),
-            port=config.getint('vcenter', 'port')
+            port=config.getint('vcenter', 'port'),
+            sslContext=context
         )
     except Exception as e:
-        # Workaround for GH issue#212
-        if isinstance(e, vim.fault.HostConnectFault) and '[SSL: CERTIFICATE_VERIFY_FAILED]' in e.msg:
-            try:
-                import ssl
-                default_context = ssl._create_default_https_context
-                ssl._create_default_https_context = ssl._create_unverified_context
-                si = SmartConnect(
-                    host=config.get('vcenter', 'hostname'),
-                    user=config.get('vcenter', 'username'),
-                    pwd=config.get('vcenter', 'password'),
-                    port=config.getint('vcenter', 'port')
-                )
-                ssl._create_default_context = default_context
-            except Exception as _e:
-                raise Exception(_e)
-        else:
+        if args.verbose:
             print(
                 'Could not connect to vcenter server: {0}'.format(
                     str(e)
                 ),
                 file=stderr
             )
-            raise Exception(e)
+        raise Exception(e)
 
     atexit.register(Disconnect, si)
 
+    es = Elasticsearch('http://{host}:{port}'.format(
+        host=config.get('elasticsearch', 'host'),
+        port=config.get('elasticsearch', 'port')
+    ))
+
     content = si.RetrieveContent()
     for vc_node in content.rootFolder.childEntity:
-        traverse_vc(vc_node)
+        traverse_vc(vc_node, es)
 
 if __name__ == '__main__':
     main()
