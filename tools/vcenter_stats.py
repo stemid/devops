@@ -25,7 +25,7 @@ from elasticsearch import Elasticsearch
 config = RawConfigParser()
 try:
     config.readfp(open('vcenter_stats.cfg'))
-except FileNotFoundError:
+except:
     pass
 config.read(['/etc/vcenter_stats.cfg', './vcenter_stats.local.cfg'])
 
