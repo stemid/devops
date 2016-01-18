@@ -11,7 +11,7 @@
 # by Stefan Midjich <swehack@gmail.com>
 
 add-pssnapin VMware.VimAutomation.Core
-Set-PowerCLIConfiguration -invalidCertificateAction 'ignore' -confirm:$false
+Set-PowerCLIConfiguration -invalidCertificateAction 'ignore' -confirm:$false -Scope Session
 Connect-VIServer -Server 10.220.100.220 -Protocol https
 
 # Disable timeout because unmap operation takes longer than 300 seconds to run
