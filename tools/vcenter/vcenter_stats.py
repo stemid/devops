@@ -76,7 +76,6 @@ def entity_info(vc_entity):
     obj_id = str(vc_entity).split(':')[1].rstrip('\'')
     vc_name = unquote(vc_entity.name)
 
-    # The Unicode madness is for siptrack
     return (
         vc_name,
         obj_id
@@ -109,8 +108,8 @@ def import_stats(vc_node, es):
     stats['uptimeSeconds'] = quickStats.uptimeSeconds
 
     # Get storage stats for VM
-    stats['storageCommitted'] = 0L
-    stats['storageUncommitted'] = 0L
+    stats['storageCommitted'] = 0
+    stats['storageUncommitted'] = 0
     try:
         storage = vc_node.storage.perDatastoreUsage
         stats['storageCommitted'] += storage[0].committed
