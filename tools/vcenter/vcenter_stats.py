@@ -59,6 +59,13 @@ parser.add_argument(
 )
 
 
+class DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return JSONEncoder.default(self, obj)
+
+
 def entity_info(vc_entity):
     """
     entity_info - get name information from a vcenter entity
@@ -100,6 +107,27 @@ def import_stats(vc_node, es):
     stats['staticMemoryEntitlement'] = quickStats.staticMemoryEntitlement
     stats['swappedMemory'] = quickStats.swappedMemory
     stats['uptimeSeconds'] = quickStats.uptimeSeconds
+
+    # Get storage stats for VM
+    stats['storageCommitted'] = 0L
+    stats['storageUncommitted'] = 0L
+    try:
+        storage = vc_node.storage.perDatastoreUsage
+        stats['storageCommitted'] += storage[0].committed
+        stats['storageUncommitted'] += storage[0].uncommitted
+    except Exception as e:
+        if args.verbose > 1:
+            print(str(e))
+        pass
+
+    if args.verbose > 1:
+        print(json.dumps(
+            stats,
+            sort_keys=True,
+            indent=4,
+            separators=(',', ': '),
+            cls=DateEncoder
+        ))
 
     es_res = es.index(
         index=d.strftime(config.get('elasticsearch', 'index')),
