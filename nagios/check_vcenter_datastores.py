@@ -20,7 +20,7 @@ from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
 config = ConfigParser()
-config.readfp(open('vcenter_defaults.cfg'))
+#config.readfp(open('vcenter_defaults.cfg'))
 config.read(['/etc/vcenter_datastores.cfg', './vcenter_local.cfg'])
 
 parser = ArgumentParser(
