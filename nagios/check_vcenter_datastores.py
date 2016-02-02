@@ -10,8 +10,8 @@ import atexit
 import math
 from sys import exit, stderr
 from fnmatch import fnmatch
-from argparse import ArgumentParser
-from ConfigParser import ConfigParser
+from argparse import ArgumentParser, FileType
+from configparser import ConfigParser
 from pprint import pprint
 from operator import itemgetter as i
 from functools import cmp_to_key
@@ -38,7 +38,7 @@ parser.add_argument(
 
 parser.add_argument(
     '-c', '--configuration',
-    type=file,
+    type=FileType,
     dest='config_file',
     help='Additional configuration options'
 )
