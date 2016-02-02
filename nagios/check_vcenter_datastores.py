@@ -164,10 +164,6 @@ def print_datastore(ds):
 def handle_alerts(ds):
     args = parser.parse_args()
 
-    overcommitted = next(
-        (x for x in ds if x['overcommitted'] > args.overcommitted)
-    )
-
     datastores = multikeysort(ds, ['overcommitted', 'used'])
 
     if datastores[0].get('used') > args.critical:
@@ -194,10 +190,15 @@ def handle_alerts(ds):
                 perc=d.get('overcommitted')
             )
         else:
-            out_msg += '{name} uses {perc}% of space | '.format(
+            out_msg += '{name} is {perc}% full | '.format(
                 name=d.get('name'),
                 perc=d.get('used')
             )
+
+    if len(datastores) > args.max_alerts:
+        out_msg += 'Plus alerts on {more} more datastores not shown.'.format(
+            more=(len(datastores)-args.max_alerts)-1
+        )
 
     print(out_msg)
     exit(exit_code)
@@ -278,7 +279,7 @@ def main():
             continue
 
     if len(alert_ds) and args.verbose > 1:
-        print(alert_ds)
+        pprint([len(alert_ds), alert_ds])
 
     if len(alert_ds):
         handle_alerts(alert_ds)
