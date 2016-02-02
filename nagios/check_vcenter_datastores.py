@@ -4,8 +4,6 @@
 #
 # by Stefan Midjich 2016
 
-from __future__ import print_function
-
 import atexit
 import math
 from sys import exit, stderr
@@ -46,7 +44,8 @@ parser.add_argument(
 parser.add_argument(
     '-i', '--include',
     dest='include',
-    default='*',
+    default=[],
+    nargs='+',
     help=('Include datastores matching this pattern. Pattern uses fnmatch '
           'so you can use * as wildcard for entire strings and ? as wildcard '
           'for single characters.')
@@ -55,6 +54,8 @@ parser.add_argument(
 parser.add_argument(
     '-x', '--exclude',
     dest='exclude',
+    default=[],
+    nargs='*',
     help=('Exclude datastores matching this pattern, excludes override'
           ' includes.')
 )
@@ -126,6 +127,12 @@ def get_datastores(si, include, exclude):
     content = si.RetrieveContent()
     for dc in content.rootFolder.childEntity:
         for ds in dc.datastore:
+            exclude_matches = [e for e in exclude if fnmatch(ds.name, e)]
+            include_matches = [i for i in include if fnmatch(ds.name, i)]
+
+            print(include_matches)
+            print(exclude_matches)
+            exit(1)
             if exclude and fnmatch(ds.name, exclude):
                 continue
             if fnmatch(ds.name, include):
