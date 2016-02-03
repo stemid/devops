@@ -1,6 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding: utf-8
 # Nagios monitoring script for vcenter datastores.
+#
+# Configuration can look like this:
+# [vcenter]
+# hostname = 127.0.0.1
+# username = service_accountname
+# password = secret password
+# port = 443
 #
 # by Stefan Midjich 2016
 
@@ -36,7 +43,7 @@ parser.add_argument(
 
 parser.add_argument(
     '-c', '--configuration',
-    type=FileType,
+    type=FileType('r'),
     dest='config_file',
     help='Additional configuration options'
 )
