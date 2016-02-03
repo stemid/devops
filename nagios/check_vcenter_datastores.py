@@ -23,8 +23,11 @@ from operator import itemgetter as i
 from functools import cmp_to_key
 from getpass import getpass
 
+import requests
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
+
+requests.packages.urllib3.disable_warnings()
 
 config_defaults = {
     'vcenter': {
