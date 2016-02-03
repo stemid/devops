@@ -112,7 +112,7 @@ parser.add_argument(
 
 parser.add_argument(
     '-p', '--password',
-    type=bool,
+    action='store_true',
     default=False,
     help='Ask for vcenter username and password from stdin'
 )
@@ -214,7 +214,7 @@ def handle_alerts(ds):
             break
         count += 1
         if d.get('overcommitted') > args.overcommitted:
-            out_msg += '{name} overcommitted with {perc}% | '.format(
+            out_msg += '{name} overcommitted by {perc}% | '.format(
                 name=d.get('name'),
                 perc=d.get('overcommitted')
             )
