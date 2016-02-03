@@ -13,6 +13,7 @@
 
 import atexit
 import math
+import readline
 from sys import exit, stderr
 from fnmatch import fnmatch
 from argparse import ArgumentParser, FileType
@@ -20,11 +21,21 @@ from configparser import ConfigParser
 from pprint import pprint
 from operator import itemgetter as i
 from functools import cmp_to_key
+from getpass import getpass
 
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
-config = ConfigParser()
+config_defaults = {
+    'vcenter': {
+        'hostname': 'localhost',
+        'username': 'service_account',
+        'password': 'secret password',
+        'port': 443
+    }
+}
+
+config = ConfigParser(config_defaults)
 #config.readfp(open('vcenter_defaults.cfg'))
 config.read(['/etc/vcenter_datastores.cfg', './vcenter_local.cfg'])
 
@@ -99,6 +110,13 @@ parser.add_argument(
     help='Number of alerts to show before cutting off output and abbreviating.'
 )
 
+parser.add_argument(
+    '-p', '--password',
+    type=bool,
+    default=False,
+    help='Ask for vcenter username and password from stdin'
+)
+
 
 def convertSize(size):
    if (size == 0):
@@ -110,16 +128,13 @@ def convertSize(size):
    return '%s %s' % (s,size_name[i])
 
 
+cmp = lambda a ,b: (a > b) - (a < b) # Python 3 lol
+
 def multikeysort(items, columns):
     comparers = [
-        (
-            (
-                i(col[1:].strip()), -1
-            ) if col.startswith('-') else (i(col.strip()), 1)
-        )
+        ((i(col[1:].strip()), -1) if col.startswith('-') else (i(col.strip()), 1))
         for col in columns
     ]
-
     def comparer(left, right):
         comparer_iter = (
             cmp(fn(left), fn(right)) * mult
@@ -137,20 +152,20 @@ def get_datastores(si, include, exclude):
             exclude_matches = [e for e in exclude if fnmatch(ds.name, e)]
             include_matches = [i for i in include if fnmatch(ds.name, i)]
 
-            print(include_matches)
-            print(exclude_matches)
-            exit(1)
-            if exclude and fnmatch(ds.name, exclude):
+            if len(exclude_matches):
                 continue
-            if fnmatch(ds.name, include):
-                summary = ds.summary
-                # Convert from bytes to KB so my convertSize function works
+
+            summary = ds.summary
+            # Convert from bytes to KB so my convertSize function works
+            try:
                 datastores.append({
                     'name': summary.name,
                     'capacity': float(summary.capacity),
                     'freeSpace': float(summary.freeSpace),
                     'uncommitted': float(summary.uncommitted)
                 })
+            except TypeError:
+                continue
 
     return datastores
 
@@ -225,6 +240,13 @@ def main():
     if args.config_file:
         config.readfp(args.config_file)
 
+    if args.password:
+        username = input('Username > ')
+        password = getpass('Password > ')
+    else:
+        username = config.get('vcenter', 'username')
+        password = config.get('vcenter', 'password')
+
     if args.verbose == 2:
         print('Connecting to {0}'.format(
             config.get('vcenter', 'hostname')
@@ -237,8 +259,8 @@ def main():
 
         si = SmartConnect(
             host=config.get('vcenter', 'hostname'),
-            user=config.get('vcenter', 'username'),
-            pwd=config.get('vcenter', 'password'),
+            user=username,
+            pwd=password,
             port=config.getint('vcenter', 'port'),
             sslContext=context
         )
