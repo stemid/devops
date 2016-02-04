@@ -197,7 +197,9 @@ def handle_alerts(ds):
     args = parser.parse_args()
 
     if not len(ds):
-        print('OK: All datastores below thresholds')
+        print('OK: All datastores below {t}% used space'.format(
+            t=args.warning
+        ))
         exit(0)
 
     datastores = multikeysort(ds, ['overcommitted', 'used'])
