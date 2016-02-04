@@ -202,10 +202,10 @@ def handle_alerts(ds):
 
     datastores = multikeysort(ds, ['overcommitted', 'used'])
 
-    if datastores[0].get('used') > args.critical:
+    if datastores[0].get('used') >= args.critical:
         out_msg = 'CRITICAL: '
         exit_code = 2
-    elif datastores[0].get('used') > args.warning:
+    elif datastores[0].get('used') >= args.warning:
         out_msg = 'WARNING: '
         exit_code = 1
     elif datastores[0].get('overcommitted') > args.overcommitted:
