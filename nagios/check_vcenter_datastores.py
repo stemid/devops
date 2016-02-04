@@ -196,6 +196,10 @@ def print_datastore(ds):
 def handle_alerts(ds):
     args = parser.parse_args()
 
+    if not len(ds):
+        print('OK: All datastores below thresholds')
+        exit(0)
+
     datastores = multikeysort(ds, ['overcommitted', 'used'])
 
     if datastores[0].get('used') > args.critical:
@@ -208,8 +212,8 @@ def handle_alerts(ds):
         out_msg = 'WARNING: '
         exit_code = 1
     else:
-        out_msg = 'OK: All datastores below thresholds'
-        exit_code = 0
+        out_msg = 'UNKNOWN: Contact tech support'
+        exit_code = 3
 
     count=0
     for d in datastores:
