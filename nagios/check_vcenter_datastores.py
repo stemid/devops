@@ -214,7 +214,7 @@ def handle_alerts(ds):
         out_msg = 'WARNING: '
         exit_code = 1
     else:
-        out_msg = 'UNKNOWN: Contact tech support'
+        out_msg = 'UNKNOWN: Contact monitoring sysadmin'
         exit_code = 3
 
     count=0
