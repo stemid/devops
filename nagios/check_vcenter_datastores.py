@@ -256,7 +256,7 @@ def main():
         username = config.get('vcenter', 'username')
         password = config.get('vcenter', 'password')
 
-    if args.verbose == 2:
+    if args.verbose > 1:
         print('Connecting to {0}'.format(
             config.get('vcenter', 'hostname')
         ))
