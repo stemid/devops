@@ -208,8 +208,8 @@ def handle_alerts(ds):
         out_msg = 'WARNING: '
         exit_code = 1
     else:
-        out_msg = 'UNKNOWN: '
-        exit_code = 3
+        out_msg = 'OK: All datastores below thresholds'
+        exit_code = 0
 
     count=0
     for d in datastores:
@@ -320,8 +320,7 @@ def main():
     if len(alert_ds) and args.verbose > 1:
         pprint([len(alert_ds), alert_ds])
 
-    if len(alert_ds):
-        handle_alerts(alert_ds)
+    handle_alerts(alert_ds)
 
 
 if __name__ == '__main__':
