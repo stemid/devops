@@ -23,16 +23,32 @@ config = RawConfigParser({
 })
 config.read(['/etc/check_wsrep.cfg', './check_wsrep.cfg'])
 
-conn = pymysql.connect(
-    host=config.get('DEFAULT', 'hostname'),
-    user=config.get('DEFAULT', 'username'),
-    password=config.get('DEFAULT', 'password'),
-    db=config.get('DEFAULT', 'database')
-)
+try:
+    conn = pymysql.connect(
+        host=config.get('DEFAULT', 'hostname'),
+        user=config.get('DEFAULT', 'username'),
+        password=config.get('DEFAULT', 'password'),
+        db=config.get('DEFAULT', 'database')
+    )
+except Exception as e:
+    print('CRITICAL: Could not connect to database server: {error}'.format(
+        error=str(e)
+    ))
+    exit(2)
 
 cursor = conn.cursor()
 
-rows = cursor.execute("show status like 'wsrep%'")
+try:
+    rows = cursor.execute("show status like 'wsrep%'")
+except Exception as e:
+    print('UNKNOWN: Could not execute query: {error}'.format(
+        error=str(e)
+    ))
+    exit(3)
+
+if rows <= 0:
+    print('UNKNOWN: No rows returned, wsrep not configured')
+    exit(3)
 
 sections = config.sections()
 alerts = []
