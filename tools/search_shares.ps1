@@ -1,4 +1,4 @@
-# Search all shares of a computer for a filename pattern.
+# Uses WMI to search all shares of a computer for a filename pattern.
 #
 # Example: .\search_shares.ps1 -Filter "*.encrypted" -ServerName fileserver01
 #
