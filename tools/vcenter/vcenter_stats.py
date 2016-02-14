@@ -206,15 +206,11 @@ def main():
         import ssl
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = ssl.CERT_NONE
-        if args.verbose > 1:
-            print('NOICE!')
     except:
         # Wheezy still not supported by this, barely even ubuntu trusty
         import ssl
         context = ssl.create_default_context()
         context.verify_mode = ssl.CERT_NONE
-        if args.verbose > 1:
-            print('Your version is fine for now')
 
     si = SmartConnect(
         host=config.get('vcenter', 'hostname'),
