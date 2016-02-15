@@ -4,6 +4,7 @@
 # by Stefan Midjich <swehack@gmail.com> - 2016
 
 import atexit
+from sys import exit, stderr
 from urllib.parse import unquote
 from configparser import RawConfigParser
 from argparse import ArgumentParser, FileType
@@ -27,7 +28,7 @@ parser.add_argument(
     '-c', '--configuration',
     type=FileType('r'),
     dest='config_file',
-    help='Additional configuration options'
+    help='Additional configuration options.'
 )
 
 parser.add_argument(
@@ -43,7 +44,7 @@ parser.add_argument(
     action='count',
     default=False,
     dest='verbose',
-    help='Verbose output, use more v\'s to increase level'
+    help='Verbose output, use more v\'s to increase level.'
 )
 
 parser.add_argument(
@@ -51,6 +52,20 @@ parser.add_argument(
     required=True,
     dest='vc_path',
     help='Vcenter path to tag all items under.'
+)
+
+parser.add_argument(
+    '-K', '--key',
+    required=True,
+    dest='field_name',
+    help='Vcenter custom field name.'
+)
+
+parser.add_argument(
+    '-V', '--value',
+    required=True,
+    dest='field_value',
+    help='Vcenter custom field value.'
 )
 
 
@@ -70,49 +85,96 @@ def entity_info(vc_entity):
     )
 
 
-def traverse_vc(vc_node, depth=1):
+def tag(vc_node, key, value, depth=1):
+    """
+    Recursively tag any folders and VMs under a certain VC node.
+    """
     args = parser.parse_args()
-
     maxdepth = args.max_recursion
 
     if depth > maxdepth:
         if args.verbose:
-            print(
-                'Reached max recursive depth, bailing out like a banker',
-                file=stderr
-            )
+            print('Max recursion depth, bailing out like bankers',
+                  file=stderr
+                 )
         return
 
-    # This stores the name of the class
     object_type = vc_node.__class__.__name__
-
-    if object_type == 'vim.Datacenter':
-        (datacenter_name, datacenter_object_id) = entity_info(vc_node)
-
-        # Go through all the VM folders
-        for _entity in vc_node.vmFolder.childEntity:
-            traverse_vc(_entity, depth+1)
-        return
 
     if object_type == 'vim.Folder':
         (folder_name, folder_object_id) = entity_info(vc_node)
 
-        # Traverse subfolders
         for _entity in vc_node.childEntity:
-            traverse_vc(_entity, depth+1)
+            tag(_entity, key, value, depth+1)
         return
 
     if object_type == 'vim.VirtualApp':
         (vapp_name, vapp_object_id) = entity_info(vc_node)
 
-        # Loop through VMs in this vApp
         for _entity in vc_node.vm:
-            traverse_vc(_entity, depth+1)
+            tag(_entity, key, value, depth+1)
         return
 
     if object_type == 'vim.VirtualMachine':
         (vm_name, vm_object_id) = entity_info(vc_node)
-        print(vm_name, object_type)
+
+        repr(vc_node.customValue)
+        for v in vc_node.availableField:
+            if v.name == key:
+                print(v)
+                exit(1)
+
+
+def iterative_bfs(vc_node, depth=1, path=[]):
+    """
+    Find node by path in vcenter tree.
+    """
+    args = parser.parse_args()
+    maxdepth = args.max_recursion
+
+    while path:
+        if depth > maxdepth:
+            if args.verbose:
+                print(
+                    'Reached max recursive depth, bailing out like a banker',
+                    file=stderr
+                )
+            return
+
+        depth += 1
+
+        # This stores the name of the class
+        object_type = vc_node.__class__.__name__
+        (node_name, node_object_id) = entity_info(vc_node)
+
+        if object_type == 'vim.Datacenter':
+            # Go through all the VM folders
+            for _entity in vc_node.vmFolder.childEntity:
+                (node_name, node_object_id) = entity_info(_entity)
+                if node_name == path[0]:
+                    path.pop(0)
+                    vc_node = _entity
+                    break
+
+        if object_type == 'vim.Folder':
+            # Traverse subfolders
+            for _entity in vc_node.childEntity:
+                (node_name, node_object_id) = entity_info(_entity)
+                if node_name == path[0]:
+                    path.pop(0)
+                    vc_node = _entity
+                    break
+
+        if object_type == 'vim.VirtualApp':
+            # Loop through VMs in this vApp
+            for _entity in vc_node.vm:
+                (node_name, node_object_id) = entity_info(_entity)
+                if node_name == path[0]:
+                    path.pop(0)
+                    vc_node = _entity
+                    break
+
+    return vc_node
 
 
 args = parser.parse_args()
@@ -148,6 +210,19 @@ si = SmartConnect(
 atexit.register(Disconnect, si)
 
 content = si.RetrieveContent()
-for vc_node in content.rootFolder.childEntity:
-    traverse_vc(vc_node)
+pathlist = args.vc_path.rstrip('/').lstrip('/').split('/')
 
+for vc_node in content.rootFolder.childEntity:
+    object_type = vc_node.__class__.__name__
+    (node_name, node_object_id) = entity_info(vc_node)
+    if node_name == pathlist[0]:
+        pathlist.pop(0)
+        node = iterative_bfs(vc_node, 1, pathlist)
+        break
+else:
+    print('Node not found')
+    exit(1)
+
+customFieldsManager = vim.CustomFieldsManager()
+customFieldsManager.AddCustomFieldDef(name = args.field_name, moType = vim.VirtualMachine)
+tag(node, args.field_name, args.field_value)
