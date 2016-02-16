@@ -3,6 +3,15 @@
 # of VMs recursively with a certain attribute given on the CLI.
 # See --help argument for more information.
 #
+# Put vcenter information into a configuration file. By default 
+# /etc/vcenter.cfg and ./vcenter.local.cfg are attempted. 
+# Example:
+# [vcenter]
+# hostname = localhost
+# username = svc_user
+# password = secret password
+# port = 443
+#
 # by Stefan Midjich <swehack@gmail.com> - 2016
 
 import atexit
