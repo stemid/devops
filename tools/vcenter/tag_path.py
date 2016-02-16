@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-# This tool tags an entire path of devices with a certain given tag and value.
+# This tool uses vSphere Custom Attributes to "tag" an entire inventory folder
+# of VMs recursively with a certain attribute given on the CLI.
+# See --help argument for more information.
 #
 # by Stefan Midjich <swehack@gmail.com> - 2016
 
@@ -9,12 +11,15 @@ from urllib.parse import unquote
 from configparser import RawConfigParser
 from argparse import ArgumentParser, FileType
 
+import requests
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 
 parser = ArgumentParser(
     description='Tag any vcenter VM object under a specific path',
-    epilog=''
+    epilog=('Example: ./tag_path.py -c vcenter.cfg -p '
+            '"SE Datacenter/PoC VMs/lnx-lab02" -K "Customername" '
+            '-V "Company X"')
 )
 
 config = RawConfigParser()
@@ -28,7 +33,8 @@ parser.add_argument(
     '-c', '--configuration',
     type=FileType('r'),
     dest='config_file',
-    help='Additional configuration options.'
+    metavar='FILE',
+    help='File with additional configuration options.'
 )
 
 parser.add_argument(
@@ -36,6 +42,7 @@ parser.add_argument(
     default=16,
     dest='max_recursion',
     type=int,
+    metavar='N',
     help='Max recursion depth when traversing vcenter entities.'
 )
 
@@ -51,6 +58,7 @@ parser.add_argument(
     '-p', '--path',
     required=True,
     dest='vc_path',
+    metavar='PATH',
     help='Vcenter path to tag all items under.'
 )
 
@@ -58,6 +66,7 @@ parser.add_argument(
     '-K', '--key',
     required=True,
     dest='field_name',
+    metavar='STRING',
     help='Vcenter custom field name.'
 )
 
@@ -65,6 +74,7 @@ parser.add_argument(
     '-V', '--value',
     required=True,
     dest='field_value',
+    metavar='STRING',
     help='Vcenter custom field value.'
 )
 
@@ -118,16 +128,18 @@ def tag(vc_node, key, value, depth=1):
     if object_type == 'vim.VirtualMachine':
         (vm_name, vm_object_id) = entity_info(vc_node)
 
-        repr(vc_node.customValue)
-        for v in vc_node.availableField:
-            if v.name == key:
-                print(v)
-                exit(1)
+        vc_node.setCustomValue(key=key, value=value)
+        if args.verbose > 2:
+            print('{vm}: Set {key}=>{value}'.format(
+                vm=vm_name,
+                key=key,
+                value=value
+            ))
 
 
-def iterative_bfs(vc_node, depth=1, path=[]):
+def find_node_by_path(vc_node, depth=1, path=[]):
     """
-    Find node by path in vcenter tree.
+    Find node by path in vcenter tree using iterative BFS.
     """
     args = parser.parse_args()
     maxdepth = args.max_recursion
@@ -189,6 +201,9 @@ if args.verbose > 1:
         host=config.get('vcenter', 'hostname')
     ))
 
+# Disable warnings for insecure certificates
+requests.packages.urllib3.disable_warnings()
+
 # Workaround for GH issue #235, self-signed cert
 try:
     import ssl
@@ -217,12 +232,29 @@ for vc_node in content.rootFolder.childEntity:
     (node_name, node_object_id) = entity_info(vc_node)
     if node_name == pathlist[0]:
         pathlist.pop(0)
-        node = iterative_bfs(vc_node, 1, pathlist)
+        node = find_node_by_path(vc_node, 1, pathlist)
         break
 else:
-    print('Node not found')
+    print('Node not found', file=stderr)
     exit(1)
 
-customFieldsManager = vim.CustomFieldsManager()
-customFieldsManager.AddCustomFieldDef(name = args.field_name, moType = vim.VirtualMachine)
+cfm = content.customFieldsManager
+
+# Check if field exists
+for field in cfm.field:
+    if field.type == 'str':
+        if field.name == args.field_name:
+            if args.verbose > 2:
+                print('Found field {name}'.format(
+                    name=args.field_name
+                ))
+            break
+else:
+    # Create field
+    if args.verbose > 2:
+        print('Did not find field {name}, creating it'.format(
+            name=args.field_name
+        ))
+    cfm.AddCustomFieldDef(name = args.field_name, moType = vim.VirtualMachine)
+
 tag(node, args.field_name, args.field_value)
