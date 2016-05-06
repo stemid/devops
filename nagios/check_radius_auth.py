@@ -74,7 +74,7 @@ with radius.connect((args.host, args.port), args.secret, args.timeout) as conn:
         result = conn.authenticate(args.username, args.password)
     except Exception as e:
         print('CRITICAL: Authentication test failed: {error}'.format(
-            error=str(e))
+            error=str(e)
         ), file=stderr)
         exit(CRITICAL)
 
