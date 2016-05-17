@@ -63,6 +63,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+# Nagios exit codes
 OK = 0
 WARNING = 1
 CRITICAL = 2
@@ -75,10 +76,14 @@ with radius.connect((args.host, args.port), args.secret, args.timeout) as conn:
     except Exception as e:
         print('CRITICAL: Authentication test failed: {error}'.format(
             error=str(e)
-        ), file=stderr)
+        ))
         exit(CRITICAL)
 
-    if result:
-        print('OK: RADIUS server authentication success')
+    if not result:
+        print('WARNING: Authentication failed: {error}'.format(
+            error=str(result)
+        ))
+        exit(WARNING)
 
+    print('OK: RADIUS server authentication success')
     exit(OK)
