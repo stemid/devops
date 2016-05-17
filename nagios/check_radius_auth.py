@@ -76,11 +76,11 @@ with radius.connect((args.host, args.port), args.secret, args.timeout) as conn:
     except Exception as e:
         print('CRITICAL: Authentication failed: {error}'.format(
             error=str(e)
-        ), file=stderr)
+        ))
         exit(CRITICAL)
 
     if not result:
-        print('WARNING: Authentication failed', file=stderr)
+        print('WARNING: Authentication failed')
         exit(WARNING)
 
     print('OK: Authentication success')
