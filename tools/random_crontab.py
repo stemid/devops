@@ -3,6 +3,8 @@
 #
 # by Stefan Midjich <swehack@gmail.com> - 2016
 
+from __future__ import print_function
+
 from sys import stdout, stderr
 from random import randint
 from argparse import ArgumentParser, FileType, ArgumentDefaultsHelpFormatter
@@ -109,6 +111,10 @@ def make_cronjob(minute, hour, day, month, weekday, user, job):
     return cronjob
 
 
+def write_crontab(output, data):
+    print(data, file=output)
+
+
 def main():
     args = parser.parse_args()
 
@@ -118,7 +124,7 @@ def main():
     month = args.month
     weekday = args.weekday
 
-    # Check for any r/R's in cron field arguments to ensure random values
+    # Check for any r/R's in cron field arguments and ensure random values
     # are used for them.
     if minute.upper().startswith('R'):
         minute = None
@@ -147,7 +153,7 @@ def main():
             args.job
         )
 
-        print(job_data, file=args.outputfile)
+        write_crontab(args.outputfile, job_data)
 
 
 if __name__ == '__main__':
