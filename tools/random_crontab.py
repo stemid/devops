@@ -8,7 +8,9 @@ from random import randint
 from argparse import ArgumentParser, FileType, ArgumentDefaultsHelpFormatter
 
 parser = ArgumentParser(
-    description='Generate random crontab lines for a specified job',
+    description='Generate random crontab lines for a specified job. ',
+    epilog=('Example: random_crontab.py --hour R --minute R "bash test"'
+            ' --count 5'),
     formatter_class=ArgumentDefaultsHelpFormatter
 )
 
@@ -40,7 +42,7 @@ parser.add_argument(
     '--max-count',
     default=50,
     type=int,
-    help='Maximum number of cronjobs to generate'
+    help='Maximum number of cronjobs to generate randomly'
 )
 
 parser.add_argument(
