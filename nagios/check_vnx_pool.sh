@@ -58,7 +58,7 @@ function float_cond()
 	if [ $# -gt 0 ]; then
 		cond=$(echo "$*" | bc -q 2>/dev/null)
 		if [ -z "$cond" ]; then cond=0; fi
-		if [[ "$cond" != 0 && "$cond" != 1 ]]; then cond=0; fi
+		if [ "$cond" != 0 -a "$cond" != 1 ]; then cond=0; fi
 	fi
 	local stat=$((cond == 0));
 	return $stat;
