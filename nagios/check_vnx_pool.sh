@@ -2,15 +2,20 @@
 #
 # Check the usage of an EMC VNX pool.
 #
-# Requires that an encrypted security credentials files is localated in
-# /etc/nagios3/emc on the system. N.B. the nagios user has to be able
-# to read/write to the folder where the credentials are stored.
+# Requires that an encrypted security credentials files is located
+# somewhere on the system. 
 #
-# The user credentials file was created using the following command:
+# The user credentials file can be created using the following command:
 #
-# /opt/Navisphere/bin/naviseccli -secfilepath /etc/nagios3/emc -User monitor -Scope 1 -AddUserSecurity
+# /opt/Navisphere/bin/naviseccli -secfilepath /etc/navisphere -User monitor -Scope 1 -AddUserSecurity
 #
 # Where the monitor user is a read only user defined in the SAN.
+# NOTE: That the user running the command to create the security files 
+# must be the user reading them after, any other user will not be able
+# to use the files. So for example nagios user would need to do this.
+#
+# sudo -u nagios /opt/Navisphere/bin/naviseccli -secfilepath /etc/navisphere ...
+# To create files used by the nagios user.
 #
 # by Per-Ola Gustafsson
 # Modified by Stefan Midjich <swehack@gmail.com>
