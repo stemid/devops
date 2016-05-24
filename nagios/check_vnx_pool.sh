@@ -20,7 +20,7 @@
 # by Per-Ola Gustafsson
 # Modified by Stefan Midjich <swehack@gmail.com>
 
-navsecfilepath=/etc/nagios3/emc
+navsecfilepath=/etc/navisphere
 navcli="/opt/Navisphere/bin/naviseccli -secfilepath $navsecfilepath "
 
 # nagios return codes
