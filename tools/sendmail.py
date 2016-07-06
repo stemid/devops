@@ -80,8 +80,8 @@ message_headers = ''
 for header in args.header:
     message_headers += str(header)
 
-standard_headers = '''From: {mail_from}
-To: {rcpt_to}
+standard_headers = '''From: <{mail_from}>
+To: <{rcpt_to}>
 Subject: {subject}'''.format(
     now=formatdate(),
     mail_from=args.mail_from,
