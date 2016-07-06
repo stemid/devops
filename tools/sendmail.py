@@ -78,11 +78,11 @@ else:
 
 message_headers = ''
 for header in args.header:
-    message_headers += str(header)
+    message_headers += '{header}\r\n'.format(header=str(header))
 
-standard_headers = '''From: <{mail_from}>
-To: <{rcpt_to}>
-Subject: {subject}'''.format(
+standard_headers = '''From: <{mail_from}>\r\n
+To: <{rcpt_to}>\r\n
+Subject: {subject}\r\n'''.format(
     now=formatdate(),
     mail_from=args.mail_from,
     rcpt_to=','.join(args.rcpt_to),
@@ -95,7 +95,7 @@ else:
     message = ''
 
 message += """
-Date: {date}
+Date: {date}\r\n
 {headers}
 
 {body}
