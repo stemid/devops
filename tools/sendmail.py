@@ -94,12 +94,11 @@ if not args.skip_standard_headers:
 else:
     message = ''
 
-message += """
-Date: {date}\r\n
+message += '''Date: {date}
 {headers}
 
 {body}
-""".format(
+'''.format(
     date=formatdate(),
     headers=message_headers,
     body=message_body
