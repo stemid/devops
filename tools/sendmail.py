@@ -30,7 +30,6 @@ parser.add_argument(
 
 parser.add_argument(
     '--rcpt-to',
-    nargs='+',
     action='append',
     help='RCPT TO, can specify more than once'
 )
@@ -49,7 +48,6 @@ parser.add_argument(
 
 parser.add_argument(
     '--header',
-    nargs='*',
     action='append',
     help='Additional headers, can specify more than once'
 )
