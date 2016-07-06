@@ -274,15 +274,19 @@ def main():
             sslContext=context
         )
     except Exception as e:
-        print(
-            'Could not connect to vcenter server: {0}'.format(
-                str(e)
-            ),
-            file=stderr
-        )
+        if args.verbose:
+            print(
+                'Could not connect to vcenter server: {0}'.format(
+                    str(e)
+                ),
+                file=stderr
+            )
         if args.verbose > 1:
             raise Exception(e)
         else:
+            print('UNKNOWN: Could not connect to {host}'.format(
+                host=config.get('vcenter', 'hostname')
+            ))
             exit(2)
 
     atexit.register(Disconnect, si)
