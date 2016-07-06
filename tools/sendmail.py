@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument(
     '--rcpt-to',
     nargs='+',
-    help='RCPT TO'
+    help='RCPT TO, can specify more than once'
 )
 
 parser.add_argument(
@@ -43,7 +43,7 @@ parser.add_argument(
 parser.add_argument(
     '--body-file',
     type=FileType('r'),
-    help=''
+    help='Message body, if not specified read from stdin'
 )
 
 parser.add_argument(
@@ -80,8 +80,7 @@ message_headers = ''
 for header in args.header:
     message_headers += str(header)
 
-standard_headers = '''Date: {now}
-From: {mail_from}
+standard_headers = '''From: {mail_from}
 To: {rcpt_to}
 Subject: {subject}'''.format(
     now=formatdate(),
@@ -96,10 +95,12 @@ else:
     message = ''
 
 message += """
+Date: {date}
 {headers}
 
 {body}
 """.format(
+    date=formatdate(),
     headers=message_headers,
     body=message_body
 )
@@ -107,11 +108,6 @@ message += """
 server = smtplib.SMTP(args.server)
 if args.verbose:
     server.set_debuglevel(True)
+
 server.sendmail(args.mail_from, args.rcpt_to, message)
-
-if args.verbose:
-    l.info('Successfully sent e-mail to {rcpt_to}'.format(
-        rcpt_to=args.rcpt_to
-    ))
-
 server.quit()
