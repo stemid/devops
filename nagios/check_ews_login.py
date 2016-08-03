@@ -112,5 +112,5 @@ if __name__ == '__main__':
         ))
         exit(1)
 
-    print('OK: EWS login worked')
+    print('OK: EWS is working')
     exit(0)
