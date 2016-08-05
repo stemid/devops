@@ -54,7 +54,7 @@ with -c argument.
     String to look for in response body, this overrides -C.
   -c <timeout>
     Critical timeout, this script does not make use of warning timeout. 
-  -ssl
+  --ssl
     Make use of SSL, which is often the default with NTLM. 
   -R
     Do not follow redirects, default is to follow 5 redirects.
@@ -108,7 +108,7 @@ while [ -n "$1" ]; do
 		timeout="-m $2"
 		shift 2
 		;;
-	-ssl)
+	--ssl)
 		useSSL='-ssl'
 		shift
 		;;
