@@ -5,7 +5,7 @@
 
 spinner() {
   # Takes two arguments, first is mandatory and is the pid to wait for.
-  # Second command is optional and is the delay of the spinner, defaults
+  # Second argument is optional and is the delay of the spinner, defaults
   # to 1 second.
 
   local pid=$1 && shift
