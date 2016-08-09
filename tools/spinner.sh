@@ -17,10 +17,14 @@ spinner() {
   done
 }
 
-exec "$@" &
-pid=$!
-
-spinner $pid 0.2
-
-echo
-echo "Process[$pid] $@ done"
+# # Use like this for example, to make a command you can call other commands
+# # with and get a spinner until they finish.
+# source spinner.sh
+#
+# exec "$@" &
+# pid=$!
+#
+# spinner $pid 0.2
+#
+# echo
+# echo "Process[$pid] $@ done"
