@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Example of a spinner for bash that can be used for entertainment during
+# long running processes. Works only on Linux.
+# Stefan Midjich <swehack@gmail.com> 2016
 
 spinner() {
   local pid=$1 && shift
