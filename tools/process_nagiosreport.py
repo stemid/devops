@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Process nagios availability reports from HTML into CSV format using
 # beautiful soup. Requires python3 due to dict.items() use intead of
 # collections.OrderedDict.
