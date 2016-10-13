@@ -15,7 +15,7 @@ while IFS=$'= \t' read -r -a data; do
 	blkid -U "$uuid" &>/dev/null|| continue
 	disk=$(blkid -U "$uuid")
 	test -b "$disk" || continue
-	sed -i -e "s:^UUID=[^\s\t]*:$disk:" /etc/fstab
+	sed -i -e "s:^UUID=$uuid:$disk:" /etc/fstab
 done < <(grep ^UUID= /etc/fstab)
 
 # Maybe use this solution instead.

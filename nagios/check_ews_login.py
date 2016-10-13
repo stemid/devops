@@ -83,7 +83,8 @@ if __name__ == '__main__':
         connection = ExchangeNTLMAuthConnection(
             url=url,
             username=username,
-            password=password
+            password=password,
+            verify_certificate=False
         )
     except Exception as e:
         print('CRITICAL: Could not connect to EWS: {error}'.format(
@@ -99,7 +100,17 @@ if __name__ == '__main__':
         ))
         exit(1)
 
-    calendar = service.calendar(id='calendar')
+    # Get calendar object
+    try:
+        calendar = service.calendar(id='calendar')
+    except Exception as e:
+        print('WARNING: Failed to get EWS calendar object: {error}'.format(
+            error=str(e)
+        ))
+        exit(1)
+
+    folder = service.folder()
+    """
     try:
         start_date = datetime.now() - timedelta(days=14)
         events = calendar.list_events(
@@ -111,6 +122,7 @@ if __name__ == '__main__':
             error=str(e)
         ))
         exit(1)
+    """
 
     print('OK: EWS is working')
     exit(0)
