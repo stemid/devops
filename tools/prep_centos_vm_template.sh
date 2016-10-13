@@ -29,6 +29,12 @@ for disk_uuid in /dev/disk/by-uuid/*; do
 done
 EOF
 
+cat /etc/fstab
+echo -n "Review fstab, type yes to continue and no to abort. (yes/no): "
+read answer
+
+test "$answer" = 'yes' || exit 1
+
 # Replace UUIDs from network config
 sed -i -e '/^UUID=.*/d' /etc/sysconfig/network-scripts/ifcfg-*
 
