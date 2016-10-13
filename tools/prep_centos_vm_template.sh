@@ -22,7 +22,7 @@ done < <(grep ^UUID= /etc/fstab)
 << EOF
 for disk_uuid in /dev/disk/by-uuid/*; do
 	disk=$(readlink -f "$disk_uuid")
-	uuid=$(basename "$disk_uuid")
+	uuid=${disk_uuid##*/}
 	if grep -c "^UUID=$uuid" /etc/fstab &>/dev/null; then
 		sed -i -e "s:^UUID=$uuid:$disk:" /etc/fstab
 	fi
