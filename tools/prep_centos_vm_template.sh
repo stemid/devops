@@ -19,13 +19,15 @@ while IFS=$'= \t' read -r -a data; do
 done < <(grep ^UUID= /etc/fstab)
 
 # Maybe use this solution instead.
-# for disk_uuid in /dev/disk/by-uuid/*; do
-# 	disk=$(readlink -f $disk_uuid)
-#		uuid=$(basename $disk_uuid)
-#		if grep -c "^UUID=$uuid" /etc/fstab; then
-#			sed -i -e "s:^UUID=$uuid:$disk:" /etc/fstab
-#		fi
-#	done
+<< EOF
+for disk_uuid in /dev/disk/by-uuid/*; do
+	disk=$(readlink -f "$disk_uuid")
+	uuid=$(basename "$disk_uuid")
+	if grep -c "^UUID=$uuid" /etc/fstab &>/dev/null; then
+		sed -i -e "s:^UUID=$uuid:$disk:" /etc/fstab
+	fi
+done
+EOF
 
 # Replace UUIDs from network config
 sed -i -e '/^UUID=.*/d' /etc/sysconfig/network-scripts/ifcfg-*
