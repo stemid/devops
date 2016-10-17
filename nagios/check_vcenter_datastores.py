@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # coding: utf-8
 # Nagios monitoring script for vcenter datastores.
 #
@@ -10,6 +10,8 @@
 # port = 443
 #
 # by Stefan Midjich 2016
+
+from __future__ import print_function
 
 import atexit
 import math
