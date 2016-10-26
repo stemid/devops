@@ -19,7 +19,10 @@ import readline
 from sys import exit, stderr
 from fnmatch import fnmatch
 from argparse import ArgumentParser, FileType
-from configparser import RawConfigParser as ConfigParser
+try:
+    from configparser import RawConfigParser as ConfigParser
+except ImportError:
+    from ConfigParser import RawConfigParser as ConfigParser
 from pprint import pprint
 from operator import itemgetter as i
 from functools import cmp_to_key
