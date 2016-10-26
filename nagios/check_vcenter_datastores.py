@@ -268,7 +268,12 @@ def main():
     try:
         # Workaround for unsigned SSL cert
         import ssl
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        try:
+            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        except Exception as e:
+            context = ssl.create_default_context(ssl.PROTOCOL_SSLv23)
+            pass
+
         context.verify_mode = ssl.CERT_NONE
 
         si = SmartConnect(
