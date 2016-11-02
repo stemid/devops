@@ -28,6 +28,9 @@ from operator import itemgetter as i
 from functools import cmp_to_key
 from getpass import getpass
 
+# This is only to bypass urllib3 for unsigned certs
+import ssl
+
 import requests
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
@@ -265,17 +268,20 @@ def main():
         print('Connecting to {0}'.format(
             config.get('vcenter', 'hostname')
         ))
+
+    # First try to use an unsigned ssl context the modern way
+    context = None
     try:
-        # Workaround for unsigned SSL cert
-        import ssl
-        try:
-            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-        except Exception as e:
-            context = ssl.create_default_context(ssl.PROTOCOL_SSLv23)
-            pass
-
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.verify_mode = ssl.CERT_NONE
+    except AttributeError:
+        # Now for the craziest monkeypatching to request unsigned certs with
+        # python <= 2.7.3
+        rget = requests.get
+        requests.get = lambda obj, *args,**kwargs: rget(obj,verify=False)
 
+    # Now to actually connect
+    try:
         si = SmartConnect(
             host=config.get('vcenter', 'hostname'),
             user=username,
