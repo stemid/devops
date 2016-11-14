@@ -52,6 +52,7 @@ find /etc/udev/rules.d/ -iname '70*net*' |xargs rm -f
 # Prevent ntp from panicing from tinkering
 if test -a /etc/ntp.conf && grep -c 'tinker panic 0' /etc/ntp.conf &>/dev/null; then
     sed -i -e '1 i\tinker panic 0\n' /etc/ntp.conf
+fi
 
 >/root/.bash_history
 >/home/*/.bash_history
