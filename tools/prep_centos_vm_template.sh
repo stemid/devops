@@ -50,7 +50,7 @@ sed -i -e '/^DNS[0-9]*=.*/d' /etc/sysconfig/network-scripts/ifcfg-*
 find /etc/udev/rules.d/ -iname '70*net*' |xargs rm -f
 
 # Prevent ntp from panicing from tinkering
-if test -a /etc/ntp.conf && grep -c 'tinker panic 0' /etc/ntp.conf &>/dev/null; do
+if test -a /etc/ntp.conf && grep -c 'tinker panic 0' /etc/ntp.conf &>/dev/null; then
     sed -i -e '1 i\tinker panic 0\n' /etc/ntp.conf
 
 >/root/.bash_history
