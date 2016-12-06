@@ -48,7 +48,7 @@ class NetstatUDPCollector(collector.BaseCollector):
 
     def run_netstat(self):
         buf = StringIO()
-        netstat('-su', _out=buf)
+        netstat(u'-su', _out=buf)
         buf.seek(0)
         data = []
 
