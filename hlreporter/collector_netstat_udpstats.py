@@ -2,7 +2,6 @@
 Collect stats from netstat -su. Requires sh module installed.
 """
 
-from pprint import pprint as pp
 from re import match
 from io import StringIO
 
@@ -33,7 +32,6 @@ class NetstatUDPCollector(collector.BaseCollector):
 
         udp_data = self.run_netstat()
         aggr = []
-        pp(udp_data)
 
         for data in udp_data:
             out = component.initMetric(
@@ -68,7 +66,6 @@ class NetstatUDPCollector(collector.BaseCollector):
             if donot_parse:
                 continue
 
-            pp(line)
             m = match(r'^\s*([0-9]+)\b([^$]+)$', line)
             if not m:
                 continue
