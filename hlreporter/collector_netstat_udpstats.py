@@ -71,8 +71,8 @@ class NetstatUDPCollector(collector.BaseCollector):
                 continue
 
             data.append({
-                'key': m.group(2),
-                'value': m.group(1)
+                'key': m.group(2).strip(' '),
+                'value': m.group(1).strip(' ')
             })
 
         return data
