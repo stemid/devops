@@ -94,7 +94,7 @@ opts = parser.parse_args()
 # Initiate configuration parser and read configuration file
 config = ConfigParser()
 config.readfp(opts.config)
-config.read(['centreon_report.local.cfg','/etc/centreon_report.cfg'])
+config.read(['report_local.cfg','/etc/report_defaults.cfg'])
 
 # Connect to mysql
 conn = mysql.connect(
