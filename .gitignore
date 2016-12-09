@@ -5,3 +5,4 @@ spam/spam-XTDw7KFMTGaQ
 .*.swp
 *.pyc
 *_local.cfg
+.DS_Store
