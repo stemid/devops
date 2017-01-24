@@ -33,8 +33,16 @@ parser.add_argument(
 
 parser.add_argument(
     'logfile',
-    type=FileType('r'),
+    type=FileType('r', encoding='ISO-8859-1'),
     help='Mysql slow log file'
+)
+
+parser.add_argument(
+    '-D', '--dry-run',
+    action='store_true',
+    default=False,
+    help=('Only print what would be inserted into Elasticsearch, do not'
+          ' insert anything')
 )
 
 
@@ -166,13 +174,20 @@ class ProcessLog(object):
 
 
 def main(args, config):
-    line_stats = []
+    es_servers = []
 
-    es = Elasticsearch(['http://db01.swehack.local:9200'])
+    server_string = '{protocol}://{hostname}:{port}'.format(
+        protocol=config.get('elasticsearch', 'protocol'),
+        hostname=config.get('elasticsearch', 'hostname'),
+        port=config.getint('elasticsearch', 'port')
+    )
+    es_servers.append(server_string)
+    es = Elasticsearch(es_servers)
 
     p = ProcessLog(
         date_format=args.date_format
     )
+
     for line in args.logfile:
         p.process_line(line)
 
@@ -190,11 +205,19 @@ def main(args, config):
             except KeyError:
                 continue
 
-            res = es.index(
-                index='mysql-slow',
-                doc_type='log',
-                body=es_doc
-            )
+            if args.dry_run:
+                print(p.last)
+            else:
+                res = es.index(
+                    index='mysql-slow',
+                    doc_type='log',
+                    body=es_doc
+                )
+
+                if args.verbose:
+                    print('Created ES index: {res}'.format(
+                        res=repr(res)
+                    ))
             p.commit()
 
 
