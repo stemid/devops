@@ -2,11 +2,15 @@
 # coding: utf-8
 
 import re
+import pytz
 from datetime import datetime
 from argparse import ArgumentParser, FileType
 from configparser import RawConfigParser
 
 from elasticsearch import Elasticsearch
+
+default_timezone = 'Europe/Amsterdam'
+default_index = 'mysql-slow'
 
 parser = ArgumentParser()
 
@@ -28,7 +32,18 @@ parser.add_argument(
 parser.add_argument(
     '--date-format',
     default='%y%m%d %H:%M:%S',
+    metavar='DATE_FORMAT',
     help='Mysql slow log Timestamp format according to strftime'
+)
+
+parser.add_argument(
+    '--start-from',
+    metavar='DATE',
+    help=('Start importing docs from this date. Uses same date format to '
+          'parse as is specified with --date-format. This is useful when '
+          'you want to continue parsing a file from a certain time '
+          'because otherwise the script will create duplicate documents '
+          'in Elasticsearch.')
 )
 
 parser.add_argument(
@@ -44,6 +59,14 @@ parser.add_argument(
     help=('Only print what would be inserted into Elasticsearch, do not'
           ' insert anything')
 )
+
+
+def doc_exists(es, doc):
+    res = es.search(index=default_index, body=doc)
+
+    if res['hits']['total'] > 0:
+        return True
+    return False
 
 
 class ProcessLog(object):
@@ -188,13 +211,37 @@ def main(args, config):
         date_format=args.date_format
     )
 
+    start_from = None
+    if args.start_from:
+        start_from = datetime.strptime(
+            args.start_from,
+            args.date_format
+        )
+
+    total_docs = 0
+    skipped_docs = 0
+    created_docs = 0
     for line in args.logfile:
         p.process_line(line)
 
         if p.ready:
+            total_docs += 1
+
+            if start_from:
+                if p.time < start_from:
+                    if args.verbose > 1:
+                        print('Skipping doc due to start-time')
+
+                    skipped_docs += 1
+                    continue
+
+            local_tz = pytz.timezone(default_timezone)
+            local_dt = local_tz.localize(p.time, is_dst=None)
+            utc_dt = local_dt.astimezone(pytz.utc)
+
             try:
                 es_doc = {
-                    'timestamp': p.time,
+                    'timestamp': utc_dt,
                     'username': p.user_info['username'],
                     'ip-address': p.user_info['ip-address'],
                     'query-time': p.query_info['query-time'],
@@ -205,11 +252,36 @@ def main(args, config):
             except KeyError:
                 continue
 
+            search_matches = [
+                { 'match': {'timestamp': utc_dt} },
+                #{ 'match': {'username': p.user_info['username']} },
+                #{ 'match': {'ip-address': p.user_info['ip-address']} },
+                { 'match': {'query-time': p.query_info['query-time']} },
+                #{ 'match': {'block-time': p.query_info['block-time']} },
+                #{ 'match': {'rows-examined': p.query_info['rows-examined']} },
+                #{ 'match': {'rows-sent': p.query_info['rows-sent']} },
+            ]
+            search_doc = {
+                'query': {
+                    'bool': {
+                        'must': search_matches
+                    }
+                }
+            }
+            # Not sure if this works as it should.
+            #if doc_exists(es, search_doc):
+            #    if args.verbose:
+            #        print('Document exists: {doc}'.format(
+            #            doc=repr(es_doc)
+            #        ))
+            #    skipped_docs += 1
+            #    continue
+
             if args.dry_run:
                 print(p.last)
             else:
                 res = es.index(
-                    index='mysql-slow',
+                    index=default_index,
                     doc_type='log',
                     body=es_doc
                 )
@@ -218,9 +290,16 @@ def main(args, config):
                     print('Created ES index: {res}'.format(
                         res=repr(res)
                     ))
+                created_docs += 1
+
             p.commit()
 
-
+    if args.verbose:
+        print('Created {created}, skipped {skipped} out of total {total}'.format(
+            created=created_docs,
+            skipped=skipped_docs,
+            total=total_docs
+        ))
 
 
 if __name__ == '__main__':
