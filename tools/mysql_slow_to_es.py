@@ -251,7 +251,7 @@ def main(args, config):
                 }
             except KeyError as e:
                 if args.verbose > 1:
-                    print(str(e))
+                    raise
                 continue
 
             search_matches = [
