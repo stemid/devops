@@ -249,7 +249,9 @@ def main(args, config):
                     'rows-sent': p.query_info['rows-sent'],
                     'rows-examined': p.query_info['rows-examined']
                 }
-            except KeyError:
+            except KeyError as e:
+                if args.verbose > 1:
+                    print(str(e))
                 continue
 
             search_matches = [
